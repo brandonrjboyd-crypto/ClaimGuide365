@@ -2928,13 +2928,171 @@ function enterAsRole(role) {
   APP_ROLE = role;
   syncLogos();
   hideAllScreens();
-  if(role === 'pro') {
-    document.getElementById('screen-pro').classList.add('active');
-    renderProList();
+  if (role === 'pro') {
+    // Show pro login screen instead of jumping straight to dashboard
+    showProLogin();
   } else if(role === 'contractor') {
     document.getElementById('screen-contractor').classList.add('active');
     initContractorPortal();
   }
+}
+
+// ── Pro login screen ─────────────────────────────────────────
+function showProLogin() {
+  hideAllScreens();
+  document.getElementById('screen-welcome').classList.add('active');
+
+  // Swap welcome card content to pro login form
+  var card = document.querySelector('.welcome-card');
+  if (!card) return;
+
+  // Save original content so we can restore it
+  if (!window._welcomeCardOriginal) {
+    window._welcomeCardOriginal = card.innerHTML;
+  }
+
+  card.innerHTML = `
+    <div style="text-align:center;margin-bottom:24px;">
+      <div style="font-size:28px;margin-bottom:8px;">⚖️</div>
+      <div class="serif" style="font-size:20px;font-weight:700;color:var(--ink);">Professional Login</div>
+      <div style="font-size:13px;color:var(--ink3);margin-top:4px);">PA / Attorney access</div>
+    </div>
+    <div class="card" style="padding:24px;">
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div><label>Email Address</label><input type="email" id="pro-login-email" placeholder="you@firm.com" /></div>
+        <div><label>Password</label><input type="password" id="pro-login-password" placeholder="Your password" onkeydown="if(event.key==='Enter')proSignIn()" /></div>
+      </div>
+      <div id="pro-login-error" style="display:none;background:var(--amber-l);border:1px solid var(--amber-b);border-radius:8px;padding:10px 14px;font-size:12.5px;color:#92400E;margin-top:12px;"></div>
+      <button onclick="proSignIn()" class="btn btn-primary btn-lg" style="width:100%;margin-top:16px;" id="pro-login-btn">
+        Sign In to Professional Portal
+      </button>
+      <div style="text-align:center;margin-top:12px;">
+        <button onclick="cancelProLogin()" style="background:none;border:none;font-size:12.5px;color:var(--ink4);cursor:pointer;">← Back</button>
+      </div>
+    </div>
+  `;
+}
+
+function cancelProLogin() {
+  // Restore original welcome card
+  var card = document.querySelector('.welcome-card');
+  if (card && window._welcomeCardOriginal) {
+    card.innerHTML = window._welcomeCardOriginal;
+  }
+  APP_ROLE = 'policyholder';
+  syncLogos();
+}
+
+async function proSignIn() {
+  var email    = (document.getElementById('pro-login-email')   ||{}).value.trim();
+  var password = (document.getElementById('pro-login-password')||{}).value;
+  var btn      = document.getElementById('pro-login-btn');
+  var errDiv   = document.getElementById('pro-login-error');
+
+  if (!email || !password) { showProLoginError('Please enter your email and password.'); return; }
+
+  btn.textContent = 'Signing in…'; btn.disabled = true;
+
+  try {
+    if (SUPA && SUPA_URL !== 'YOUR_SUPABASE_URL') {
+      // ── Live mode ──
+      var res = await SUPA.auth.signInWithPassword({ email, password });
+      if (res.error) { showProLoginError(res.error.message); btn.textContent = 'Sign In to Professional Portal'; btn.disabled = false; return; }
+
+      // Check they have a pro_users row
+      var proRes = await SUPA.from('pro_users')
+        .select('id, firm_id, name, role')
+        .eq('auth_id', res.data.user.id)
+        .maybeSingle();
+
+      if (!proRes.data) {
+        showProLoginError('No professional account found for this email. Contact your firm administrator.');
+        await SUPA.auth.signOut();
+        btn.textContent = 'Sign In to Professional Portal'; btn.disabled = false;
+        return;
+      }
+
+      SESSION.userId = res.data.user.id;
+      SESSION.firmId = proRes.data.firm_id;
+      SESSION.role   = 'pro';
+
+      // Load all claims for this firm from Supabase
+      await loadProFilesFromDB(proRes.data.firm_id);
+
+    } else {
+      // ── Demo mode — use seeded data ──
+      seedProDemoFiles();
+      SESSION.role = 'pro';
+    }
+
+    // Restore welcome card and go to pro screen
+    var card = document.querySelector('.welcome-card');
+    if (card && window._welcomeCardOriginal) card.innerHTML = window._welcomeCardOriginal;
+
+    hideAllScreens();
+    document.getElementById('screen-pro').classList.add('active');
+    renderProList();
+    toast('\u2713 Welcome back!');
+
+  } catch(e) {
+    showProLoginError('Something went wrong — please try again.');
+    btn.textContent = 'Sign In to Professional Portal'; btn.disabled = false;
+  }
+}
+
+function showProLoginError(msg) {
+  var el = document.getElementById('pro-login-error');
+  if (el) { el.style.display = 'block'; el.textContent = msg; }
+}
+
+// ── Load all firm client files from Supabase ─────────────────
+async function loadProFilesFromDB(firmId) {
+  if (!SUPA || !firmId) { seedProDemoFiles(); return; }
+  try {
+    var res = await SUPA.from('claims')
+      .select('id, claim_data, updated_at, policyholders(name, email)')
+      .eq('firm_id', firmId)
+      .order('updated_at', { ascending: false });
+
+    if (res.error || !res.data || res.data.length === 0) {
+      // No real files yet — show empty state (no demo data for pro in live mode)
+      PRO_FILES = [];
+      return;
+    }
+
+    PRO_FILES = res.data.map(function(row) {
+      var claim = row.claim_data || {};
+      return {
+        id:       row.id,
+        dbId:     row.id,           // Supabase claims.id for saving back
+        messages: claim._proMessages || [],
+        notes:    claim._proNotes    || '',
+        claim:    claim,
+        updatedAt: row.updated_at
+      };
+    });
+
+  } catch(e) {
+    console.warn('loadProFilesFromDB failed:', e.message);
+    seedProDemoFiles();
+  }
+}
+
+// ── Save pro notes/messages back to the claim in Supabase ────
+async function saveProFileToDB(fileIndex) {
+  if (!SUPA || !SESSION.userId) return;
+  var f = PRO_FILES[fileIndex];
+  if (!f || !f.dbId) return;
+  try {
+    // Merge pro metadata back into claim_data
+    var claimToSave = Object.assign({}, f.claim, {
+      _proMessages: f.messages,
+      _proNotes:    f.notes
+    });
+    await SUPA.from('claims')
+      .update({ claim_data: claimToSave, updated_at: new Date().toISOString() })
+      .eq('id', f.dbId);
+  } catch(e) { console.warn('saveProFileToDB failed:', e.message); }
 }
 
 
@@ -3649,6 +3807,7 @@ function saveProFileNote() {
   if(!txt) return;
   if(!f.notes) f.notes = [];
   f.notes.push({ text:txt, time:new Date().toLocaleString() });
+  saveProFileToDB(PRO_ACTIVE_FILE);
   toast('\u2713 Note saved');
   renderProNotesView(f);
 }
@@ -3712,6 +3871,7 @@ function sendProFileMessage() {
   if(!f.messages) f.messages = [];
   f.messages.push({ role:'pro', text:txt, time:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}), read:true });
   if(inp) inp.value = '';
+  saveProFileToDB(PRO_ACTIVE_FILE);
   toast('\u2713 Message sent to '+f.claim.name);
   renderProMessagesView(f, f.claim);
 }
@@ -4818,15 +4978,45 @@ function addSignOutButton() {
   // Load firm branding if accessed via /c/slug
   await loadFirmFromSlug();
 
-  // Try to restore an existing session
-  var restored = await restoreSession();
-  if (restored) {
-    hideAllScreens();
-    document.getElementById('screen-app').classList.add('active');
-    renderDashboard();
-    addSignOutButton();
-    toast('\u2713 Welcome back, ' + CLAIM.name.split(' ')[0] + '!');
-    return;
+  // Check for existing session
+  if (SUPA) {
+    var sessionRes = await SUPA.auth.getSession();
+    var session = sessionRes.data.session;
+
+    if (session) {
+      SESSION.userId = session.user.id;
+
+      // Check if this is a pro user first
+      var proCheck = await SUPA.from('pro_users')
+        .select('id, firm_id, name, role')
+        .eq('auth_id', session.user.id)
+        .maybeSingle();
+
+      if (proCheck.data) {
+        // Pro user — go straight to pro portal
+        SESSION.firmId = proCheck.data.firm_id;
+        SESSION.role   = 'pro';
+        APP_ROLE       = 'pro';
+        await loadProFilesFromDB(proCheck.data.firm_id);
+        hideAllScreens();
+        document.getElementById('screen-pro').classList.add('active');
+        renderProList();
+        toast('\u2713 Welcome back, ' + (proCheck.data.name || session.user.email) + '!');
+        return;
+      }
+
+      // Regular policyholder — restore their claim
+      await ensurePolicyholder(session.user.id, session.user.email);
+      await loadClaimFromDB();
+      if (CLAIM.name) {
+        hideAllScreens();
+        document.getElementById('screen-app').classList.add('active');
+        renderDashboard();
+        addSignOutButton();
+        toast('\u2713 Welcome back, ' + CLAIM.name.split(' ')[0] + '!');
+        return;
+      }
+    }
   }
 
   // No session — show welcome screen as normal
