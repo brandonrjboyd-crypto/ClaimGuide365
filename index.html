@@ -4505,6 +4505,25 @@ function showForgotPassword() {
 }
 
 // ── Sign in ──────────────────────────────────────────────────
+// ── Ensure policyholder row exists for any auth user ─────────
+async function ensurePolicyholder(userId, email) {
+  try {
+    var check = await SUPA.from('policyholders')
+      .select('id')
+      .eq('auth_id', userId)
+      .maybeSingle();
+
+    if (!check.data) {
+      await SUPA.from('policyholders').insert({
+        auth_id: userId,
+        email:   email || '',
+        name:    CLAIM.name || '',
+        firm_id: SESSION.firmId || null
+      });
+    }
+  } catch(e) { console.warn('ensurePolicyholder failed:', e.message); }
+}
+
 async function signIn() {
   var email    = (document.getElementById('si-email')   ||{}).value.trim();
   var password = (document.getElementById('si-password')||{}).value;
@@ -4520,6 +4539,7 @@ async function signIn() {
     if (res.error) { showSiError(res.error.message); btn.textContent = 'Sign In to My Claim'; btn.disabled = false; return; }
 
     SESSION.userId = res.data.user.id;
+    await ensurePolicyholder(res.data.user.id, email);
     await loadClaimFromDB();
     toast('\u2713 Welcome back, ' + (CLAIM.name || email.split('@')[0]) + '!');
     hideAllScreens();
@@ -4556,24 +4576,68 @@ goPage = function(id) {
 
 // ── Database helpers ─────────────────────────────────────────
 async function saveClaimToDB() {
-  if (!SUPA || !SESSION.userId) return;
+  if (!SUPA || !SESSION.userId) { console.warn('saveClaimToDB: no SUPA or userId'); return; }
   try {
-    await SUPA.from('claims').upsert({
-      policyholder_id: SESSION.userId,
-      firm_id: SESSION.firmId || null,
-      claim_data: CLAIM,
-      updated_at: new Date().toISOString()
-    }, { onConflict: 'policyholder_id' });
+    // Step 1 — ensure policyholder row exists
+    var phRes = await SUPA.from('policyholders')
+      .select('id')
+      .eq('auth_id', SESSION.userId)
+      .maybeSingle();
+
+    if (!phRes.data) {
+      await SUPA.from('policyholders').insert({
+        auth_id: SESSION.userId,
+        email:   CLAIM.email || '',
+        name:    CLAIM.name  || '',
+        firm_id: SESSION.firmId || null
+      });
+      phRes = await SUPA.from('policyholders')
+        .select('id')
+        .eq('auth_id', SESSION.userId)
+        .maybeSingle();
+    }
+
+    if (!phRes.data) { console.warn('saveClaimToDB: no policyholder row found'); return; }
+    var phId = phRes.data.id;
+
+    // Step 2 — check if a claim row already exists
+    var existing = await SUPA.from('claims')
+      .select('id')
+      .eq('policyholder_id', phId)
+      .maybeSingle();
+
+    if (existing.data) {
+      // UPDATE
+      var upd = await SUPA.from('claims')
+        .update({ claim_data: CLAIM, updated_at: new Date().toISOString() })
+        .eq('policyholder_id', phId);
+      console.log('claim updated:', upd);
+    } else {
+      // INSERT
+      var ins = await SUPA.from('claims')
+        .insert({ policyholder_id: phId, firm_id: SESSION.firmId || null, claim_data: CLAIM, updated_at: new Date().toISOString() });
+      console.log('claim inserted:', ins);
+    }
+
   } catch(e) { console.warn('Save failed:', e.message); }
 }
 
 async function loadClaimFromDB() {
   if (!SUPA || !SESSION.userId) return;
   try {
+    // Look up policyholder row by auth_id first
+    var phRes = await SUPA.from('policyholders')
+      .select('id, firm_id')
+      .eq('auth_id', SESSION.userId)
+      .maybeSingle();
+
+    if (!phRes.data) return;
+
     var res = await SUPA.from('claims')
       .select('claim_data, firm_id')
-      .eq('policyholder_id', SESSION.userId)
+      .eq('policyholder_id', phRes.data.id)
       .maybeSingle();
+
     if (res.data && res.data.claim_data) {
       Object.assign(CLAIM, res.data.claim_data);
       if (res.data.firm_id) SESSION.firmId = res.data.firm_id;
@@ -4703,7 +4767,9 @@ async function restoreSession() {
   try {
     var res = await SUPA.auth.getSession();
     if (!res.data.session) return false;
-    SESSION.userId = res.data.session.user.id;
+    var user = res.data.session.user;
+    SESSION.userId = user.id;
+    await ensurePolicyholder(user.id, user.email);
     await loadClaimFromDB();
     return !!CLAIM.name;
   } catch(e) { return false; }
