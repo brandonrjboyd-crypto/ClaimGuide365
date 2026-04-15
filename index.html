@@ -3055,10 +3055,12 @@ async function proRegister() {
         email, password,
         options: { data: { name: first + ' ' + last, firm, role, phone, state, account_type: 'pro' } }
       });
+      console.log('signUp result:', res);
       if (res.error) { showProRegError(res.error.message); btn.textContent = 'Submit Profile for Review'; btn.disabled = false; return; }
+      if (!res.data.user) { showProRegError('Account could not be created — this email may already be registered. Try signing in instead.'); btn.textContent = 'Submit Profile for Review'; btn.disabled = false; return; }
 
       // Store pending pro profile in a dedicated table
-      await SUPA.from('pro_registrations').insert({
+      var regRes = await SUPA.from('pro_registrations').insert({
         auth_id:    res.data.user.id,
         email:      email,
         name:       first + ' ' + last,
@@ -3067,7 +3069,8 @@ async function proRegister() {
         phone:      phone,
         state:      state,
         status:     'pending'
-      }).then(function(){}).catch(function(){});
+      });
+      console.log('pro_registrations insert:', regRes);
     }
 
     // Show success state
@@ -3210,7 +3213,7 @@ async function contractorRegister() {
       });
       if (res.error) { showCtrRegError(res.error.message); btn.textContent = 'Submit for Approval'; btn.disabled = false; return; }
 
-      await SUPA.from('contractor_registrations').insert({
+      var ctrRegRes = await SUPA.from('contractor_registrations').insert({
         auth_id:        res.data.user.id,
         email:          email,
         name:           first + ' ' + last,
@@ -3221,7 +3224,8 @@ async function contractorRegister() {
         service_radius: parseInt(radius),
         licence_number: licence,
         status:         'pending'
-      }).then(function(){}).catch(function(){});
+      });
+      console.log('contractor_registrations insert:', ctrRegRes);
     }
 
     var panel = document.getElementById('role-panel-register');
