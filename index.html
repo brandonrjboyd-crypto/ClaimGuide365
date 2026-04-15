@@ -3025,7 +3025,7 @@ function showProLogin() {
     </div>
     <div id="pro-reg-error" style="display:none;background:var(--amber-l);border:1px solid var(--amber-b);border-radius:8px;padding:10px 14px;font-size:12.5px;color:#92400E;margin-top:12px;"></div>
     <button onclick="proRegister()" class="btn btn-primary btn-lg" style="width:100%;margin-top:16px;" id="pro-reg-btn">
-      Submit Profile for Review
+      Create My Profile
     </button>`;
 
   _showRoleCard('⚖️', 'Professional Portal', signinHTML, registerHTML);
@@ -3055,39 +3055,53 @@ async function proRegister() {
         email, password,
         options: { data: { name: first + ' ' + last, firm, role, phone, state, account_type: 'pro' } }
       });
-      console.log('signUp result:', res);
-      if (res.error) { showProRegError(res.error.message); btn.textContent = 'Submit Profile for Review'; btn.disabled = false; return; }
-      if (!res.data.user) { showProRegError('Account could not be created — this email may already be registered. Try signing in instead.'); btn.textContent = 'Submit Profile for Review'; btn.disabled = false; return; }
+      if (res.error) { showProRegError(res.error.message); btn.textContent = 'Create My Profile'; btn.disabled = false; return; }
+      if (!res.data.user) { showProRegError('This email may already be registered. Try signing in instead.'); btn.textContent = 'Create My Profile'; btn.disabled = false; return; }
 
-      // Store pending pro profile in a dedicated table
-      var regRes = await SUPA.from('pro_registrations').insert({
-        auth_id:    res.data.user.id,
-        email:      email,
-        name:       first + ' ' + last,
-        firm_name:  firm,
-        role:       role,
-        phone:      phone,
-        state:      state,
-        status:     'pending'
+      var userId = res.data.user.id;
+
+      // Auto-confirm email so they can sign in immediately
+      // (handled by Supabase auth settings — if email confirm is off this works instantly)
+
+      // Create firm for this pro
+      var firmSlug = firm.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+      var firmRes = await SUPA.from('firms').insert({
+        name:  firm,
+        slug:  firmSlug + '-' + userId.substring(0,6),
+        email: email,
+        plan:  'solo'
+      }).select('id').single();
+
+      var firmId = firmRes.data ? firmRes.data.id : null;
+
+      // Create pro_users row immediately — auto approved
+      await SUPA.from('pro_users').insert({
+        auth_id: userId,
+        firm_id: firmId,
+        email:   email,
+        name:    first + ' ' + last,
+        role:    role
       });
-      console.log('pro_registrations insert:', regRes);
+
+      SESSION.userId = userId;
+      SESSION.firmId = firmId;
+      SESSION.role   = 'pro';
+      APP_ROLE       = 'pro';
     }
 
-    // Show success state
-    var panel = document.getElementById('role-panel-register');
-    if (panel) panel.innerHTML = `
-      <div style="text-align:center;padding:20px 0;">
-        <div style="font-size:40px;margin-bottom:12px;">✅</div>
-        <div class="serif" style="font-size:18px;font-weight:700;color:var(--ink);margin-bottom:8px;">Profile Submitted!</div>
-        <p style="font-size:13.5px;color:var(--ink3);line-height:1.65;">
-          Thanks ${first}! We'll review your profile and activate your account within 24 hours.
-          You'll receive an email at <strong>${email}</strong> when you're approved.
-        </p>
-      </div>`;
+    // Show success and redirect to pro portal
+    var card = document.querySelector('.welcome-card');
+    if (card && window._welcomeCardOriginal) card.innerHTML = window._welcomeCardOriginal;
+    hideAllScreens();
+    document.getElementById('screen-pro').classList.add('active');
+    PRO_FILES = [];
+    renderProList();
+    toast('\u2713 Welcome to ClaimGuide 365, ' + first + '!');
 
   } catch(e) {
+    console.error('proRegister error:', e);
     showProRegError('Something went wrong — please try again.');
-    btn.textContent = 'Submit Profile for Review'; btn.disabled = false;
+    btn.textContent = 'Create My Profile'; btn.disabled = false;
   }
 }
 
@@ -3145,7 +3159,7 @@ function showContractorLogin() {
     </div>
     <div id="ctr-reg-error" style="display:none;background:var(--amber-l);border:1px solid var(--amber-b);border-radius:8px;padding:10px 14px;font-size:12.5px;color:#92400E;margin-top:12px;"></div>
     <button onclick="contractorRegister()" class="btn btn-primary btn-lg" style="width:100%;margin-top:16px;background:var(--green);" id="ctr-reg-btn">
-      Submit for Approval
+      Create My Profile
     </button>`;
 
   _showRoleCard('🔧', 'Contractor Portal', signinHTML, registerHTML);
@@ -3211,10 +3225,14 @@ async function contractorRegister() {
         email, password,
         options: { data: { name: first + ' ' + last, company, trade, account_type: 'contractor' } }
       });
-      if (res.error) { showCtrRegError(res.error.message); btn.textContent = 'Submit for Approval'; btn.disabled = false; return; }
+      if (res.error) { showCtrRegError(res.error.message); btn.textContent = 'Create My Profile'; btn.disabled = false; return; }
+      if (!res.data.user) { showCtrRegError('This email may already be registered. Try signing in instead.'); btn.textContent = 'Create My Profile'; btn.disabled = false; return; }
 
-      var ctrRegRes = await SUPA.from('contractor_registrations').insert({
-        auth_id:        res.data.user.id,
+      var userId = res.data.user.id;
+
+      // Save contractor profile — auto approved
+      await SUPA.from('contractor_registrations').insert({
+        auth_id:        userId,
         email:          email,
         name:           first + ' ' + last,
         company_name:   company,
@@ -3223,25 +3241,26 @@ async function contractorRegister() {
         location:       location,
         service_radius: parseInt(radius),
         licence_number: licence,
-        status:         'pending'
+        status:         'approved'
       });
-      console.log('contractor_registrations insert:', ctrRegRes);
+
+      SESSION.userId = userId;
+      SESSION.role   = 'contractor';
+      APP_ROLE       = 'contractor';
     }
 
-    var panel = document.getElementById('role-panel-register');
-    if (panel) panel.innerHTML = `
-      <div style="text-align:center;padding:20px 0;">
-        <div style="font-size:40px;margin-bottom:12px;">✅</div>
-        <div class="serif" style="font-size:18px;font-weight:700;color:var(--ink);margin-bottom:8px;">Application Submitted!</div>
-        <p style="font-size:13.5px;color:var(--ink3);line-height:1.65;">
-          Thanks ${first}! We'll review your application and activate your account within 24 hours.
-          You'll receive an email at <strong>${email}</strong> when you're approved.
-        </p>
-      </div>`;
+    // Redirect straight to contractor portal
+    var card = document.querySelector('.welcome-card');
+    if (card && window._welcomeCardOriginal) card.innerHTML = window._welcomeCardOriginal;
+    hideAllScreens();
+    document.getElementById('screen-contractor').classList.add('active');
+    initContractorPortal();
+    toast('\u2713 Welcome to ClaimGuide 365, ' + first + '!');
 
   } catch(e) {
+    console.error('contractorRegister error:', e);
     showCtrRegError('Something went wrong — please try again.');
-    btn.textContent = 'Submit for Approval'; btn.disabled = false;
+    btn.textContent = 'Create My Profile'; btn.disabled = false;
   }
 }
 
@@ -5279,6 +5298,23 @@ function addSignOutButton() {
         document.getElementById('screen-pro').classList.add('active');
         renderProList();
         toast('\u2713 Welcome back, ' + (proCheck.data.name || session.user.email) + '!');
+        return;
+      }
+
+      // Check if this is a contractor
+      var ctrCheck = await SUPA.from('contractor_registrations')
+        .select('id, name, company_name')
+        .eq('auth_id', session.user.id)
+        .eq('status', 'approved')
+        .maybeSingle();
+
+      if (ctrCheck.data) {
+        SESSION.role = 'contractor';
+        APP_ROLE     = 'contractor';
+        hideAllScreens();
+        document.getElementById('screen-contractor').classList.add('active');
+        initContractorPortal();
+        toast('\u2713 Welcome back, ' + (ctrCheck.data.name || session.user.email) + '!');
         return;
       }
 
