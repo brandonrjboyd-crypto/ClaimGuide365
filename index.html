@@ -2932,45 +2932,318 @@ function enterAsRole(role) {
     // Show pro login screen instead of jumping straight to dashboard
     showProLogin();
   } else if(role === 'contractor') {
-    document.getElementById('screen-contractor').classList.add('active');
-    initContractorPortal();
+    showContractorLogin();
   }
 }
 
 // ── Pro login screen ─────────────────────────────────────────
-function showProLogin() {
+function _showRoleCard(icon, title, signinHTML, registerHTML) {
   hideAllScreens();
   document.getElementById('screen-welcome').classList.add('active');
-
-  // Swap welcome card content to pro login form
   var card = document.querySelector('.welcome-card');
   if (!card) return;
-
-  // Save original content so we can restore it
-  if (!window._welcomeCardOriginal) {
-    window._welcomeCardOriginal = card.innerHTML;
-  }
+  if (!window._welcomeCardOriginal) window._welcomeCardOriginal = card.innerHTML;
 
   card.innerHTML = `
-    <div style="text-align:center;margin-bottom:24px;">
-      <div style="font-size:28px;margin-bottom:8px;">⚖️</div>
-      <div class="serif" style="font-size:20px;font-weight:700;color:var(--ink);">Professional Login</div>
-      <div style="font-size:13px;color:var(--ink3);margin-top:4px);">PA / Attorney access</div>
+    <div style="text-align:center;margin-bottom:20px;">
+      <div style="font-size:28px;margin-bottom:6px;">${icon}</div>
+      <div class="serif" style="font-size:20px;font-weight:700;color:var(--ink);">${title}</div>
     </div>
-    <div class="card" style="padding:24px;">
-      <div style="display:flex;flex-direction:column;gap:12px;">
-        <div><label>Email Address</label><input type="email" id="pro-login-email" placeholder="you@firm.com" /></div>
-        <div><label>Password</label><input type="password" id="pro-login-password" placeholder="Your password" onkeydown="if(event.key==='Enter')proSignIn()" /></div>
-      </div>
-      <div id="pro-login-error" style="display:none;background:var(--amber-l);border:1px solid var(--amber-b);border-radius:8px;padding:10px 14px;font-size:12.5px;color:#92400E;margin-top:12px;"></div>
-      <button onclick="proSignIn()" class="btn btn-primary btn-lg" style="width:100%;margin-top:16px;" id="pro-login-btn">
-        Sign In to Professional Portal
+
+    <!-- Tabs -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;border:1.5px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:20px;">
+      <button id="tab-signin" onclick="_switchRoleTab('signin')"
+        style="padding:10px;font-size:13px;font-weight:600;background:var(--teal);color:#fff;border:none;cursor:pointer;">
+        Sign In
       </button>
-      <div style="text-align:center;margin-top:12px;">
-        <button onclick="cancelProLogin()" style="background:none;border:none;font-size:12.5px;color:var(--ink4);cursor:pointer;">← Back</button>
+      <button id="tab-register" onclick="_switchRoleTab('register')"
+        style="padding:10px;font-size:13px;font-weight:600;background:var(--white);color:var(--ink3);border:none;cursor:pointer;">
+        Create Profile
+      </button>
+    </div>
+
+    <div class="card" style="padding:24px;">
+      <div id="role-panel-signin">${signinHTML}</div>
+      <div id="role-panel-register" style="display:none;">${registerHTML}</div>
+      <div style="text-align:center;margin-top:14px;">
+        <button onclick="cancelProLogin()" style="background:none;border:none;font-size:12.5px;color:var(--ink4);cursor:pointer;">← Back to main</button>
       </div>
     </div>
   `;
+}
+
+function _switchRoleTab(tab) {
+  var signin   = document.getElementById('role-panel-signin');
+  var register = document.getElementById('role-panel-register');
+  var tsi      = document.getElementById('tab-signin');
+  var treg     = document.getElementById('tab-register');
+  if (!signin || !register) return;
+  if (tab === 'signin') {
+    signin.style.display   = 'block';
+    register.style.display = 'none';
+    tsi.style.background  = 'var(--teal)';  tsi.style.color  = '#fff';
+    treg.style.background = 'var(--white)'; treg.style.color = 'var(--ink3)';
+  } else {
+    signin.style.display   = 'none';
+    register.style.display = 'block';
+    tsi.style.background  = 'var(--white)'; tsi.style.color  = 'var(--ink3)';
+    treg.style.background = 'var(--teal)';  treg.style.color = '#fff';
+  }
+}
+
+// ── Professional login / register ───────────────────────────
+function showProLogin() {
+  var signinHTML = `
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div><label>Email Address</label><input type="email" id="pro-login-email" placeholder="you@firm.com" /></div>
+      <div><label>Password</label><input type="password" id="pro-login-password" placeholder="Your password" onkeydown="if(event.key==='Enter')proSignIn()" /></div>
+    </div>
+    <div id="pro-login-error" style="display:none;background:var(--amber-l);border:1px solid var(--amber-b);border-radius:8px;padding:10px 14px;font-size:12.5px;color:#92400E;margin-top:12px;"></div>
+    <button onclick="proSignIn()" class="btn btn-primary btn-lg" style="width:100%;margin-top:16px;" id="pro-login-btn">
+      Sign In to Professional Portal
+    </button>`;
+
+  var registerHTML = `
+    <p style="font-size:13px;color:var(--ink3);margin-bottom:14px;line-height:1.6;">Create your professional profile. Once submitted your account will be activated within 24 hours.</p>
+    <div style="display:flex;flex-direction:column;gap:11px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div><label>First Name</label><input id="pro-reg-first" placeholder="Jane" /></div>
+        <div><label>Last Name</label><input id="pro-reg-last" placeholder="Smith" /></div>
+      </div>
+      <div><label>Email Address</label><input type="email" id="pro-reg-email" placeholder="you@firm.com" /></div>
+      <div><label>Password</label><input type="password" id="pro-reg-password" placeholder="Min. 8 characters" /></div>
+      <div><label>Firm / Company Name</label><input id="pro-reg-firm" placeholder="Smith & Associates PA" /></div>
+      <div><label>Role</label>
+        <select id="pro-reg-role">
+          <option value="adjuster">Public Adjuster</option>
+          <option value="attorney">Insurance Attorney</option>
+          <option value="consultant">Claims Consultant</option>
+        </select>
+      </div>
+      <div><label>Phone Number</label><input id="pro-reg-phone" placeholder="(555) 555-5555" /></div>
+      <div><label>State / Province</label><input id="pro-reg-state" placeholder="e.g. Florida, Ontario" /></div>
+    </div>
+    <div id="pro-reg-error" style="display:none;background:var(--amber-l);border:1px solid var(--amber-b);border-radius:8px;padding:10px 14px;font-size:12.5px;color:#92400E;margin-top:12px;"></div>
+    <button onclick="proRegister()" class="btn btn-primary btn-lg" style="width:100%;margin-top:16px;" id="pro-reg-btn">
+      Submit Profile for Review
+    </button>`;
+
+  _showRoleCard('⚖️', 'Professional Portal', signinHTML, registerHTML);
+}
+
+async function proRegister() {
+  var first    = (document.getElementById('pro-reg-first')   ||{}).value.trim();
+  var last     = (document.getElementById('pro-reg-last')    ||{}).value.trim();
+  var email    = (document.getElementById('pro-reg-email')   ||{}).value.trim();
+  var password = (document.getElementById('pro-reg-password')||{}).value;
+  var firm     = (document.getElementById('pro-reg-firm')    ||{}).value.trim();
+  var role     = (document.getElementById('pro-reg-role')    ||{}).value;
+  var phone    = (document.getElementById('pro-reg-phone')   ||{}).value.trim();
+  var state    = (document.getElementById('pro-reg-state')   ||{}).value.trim();
+  var btn      = document.getElementById('pro-reg-btn');
+
+  if (!first || !last)  { showProRegError('Please enter your full name.'); return; }
+  if (!email || email.indexOf('@') < 0) { showProRegError('Please enter a valid email.'); return; }
+  if (!password || password.length < 8) { showProRegError('Password must be at least 8 characters.'); return; }
+  if (!firm)  { showProRegError('Please enter your firm or company name.'); return; }
+
+  btn.textContent = 'Submitting…'; btn.disabled = true;
+
+  try {
+    if (SUPA && SUPA_URL !== 'YOUR_SUPABASE_URL') {
+      var res = await SUPA.auth.signUp({
+        email, password,
+        options: { data: { name: first + ' ' + last, firm, role, phone, state, account_type: 'pro' } }
+      });
+      if (res.error) { showProRegError(res.error.message); btn.textContent = 'Submit Profile for Review'; btn.disabled = false; return; }
+
+      // Store pending pro profile in a dedicated table
+      await SUPA.from('pro_registrations').insert({
+        auth_id:    res.data.user.id,
+        email:      email,
+        name:       first + ' ' + last,
+        firm_name:  firm,
+        role:       role,
+        phone:      phone,
+        state:      state,
+        status:     'pending'
+      }).then(function(){}).catch(function(){});
+    }
+
+    // Show success state
+    var panel = document.getElementById('role-panel-register');
+    if (panel) panel.innerHTML = `
+      <div style="text-align:center;padding:20px 0;">
+        <div style="font-size:40px;margin-bottom:12px;">✅</div>
+        <div class="serif" style="font-size:18px;font-weight:700;color:var(--ink);margin-bottom:8px;">Profile Submitted!</div>
+        <p style="font-size:13.5px;color:var(--ink3);line-height:1.65;">
+          Thanks ${first}! We'll review your profile and activate your account within 24 hours.
+          You'll receive an email at <strong>${email}</strong> when you're approved.
+        </p>
+      </div>`;
+
+  } catch(e) {
+    showProRegError('Something went wrong — please try again.');
+    btn.textContent = 'Submit Profile for Review'; btn.disabled = false;
+  }
+}
+
+function showProRegError(msg) {
+  var el = document.getElementById('pro-reg-error');
+  if (el) { el.style.display = 'block'; el.textContent = msg; }
+}
+
+// ── Contractor login / register ──────────────────────────────
+function showContractorLogin() {
+  var signinHTML = `
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div><label>Email Address</label><input type="email" id="ctr-login-email" placeholder="you@company.com" /></div>
+      <div><label>Password</label><input type="password" id="ctr-login-password" placeholder="Your password" onkeydown="if(event.key==='Enter')contractorSignIn()" /></div>
+    </div>
+    <div id="ctr-login-error" style="display:none;background:var(--amber-l);border:1px solid var(--amber-b);border-radius:8px;padding:10px 14px;font-size:12.5px;color:#92400E;margin-top:12px;"></div>
+    <button onclick="contractorSignIn()" class="btn btn-primary btn-lg" style="width:100%;margin-top:16px;background:var(--green);" id="ctr-login-btn">
+      Sign In to Contractor Portal
+    </button>`;
+
+  var registerHTML = `
+    <p style="font-size:13px;color:var(--ink3);margin-bottom:14px;line-height:1.6;">Join the ClaimGuide 365 contractor network. Get matched with policyholders in your service area.</p>
+    <div style="display:flex;flex-direction:column;gap:11px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div><label>First Name</label><input id="ctr-reg-first" placeholder="John" /></div>
+        <div><label>Last Name</label><input id="ctr-reg-last" placeholder="Smith" /></div>
+      </div>
+      <div><label>Company Name</label><input id="ctr-reg-company" placeholder="Smith Restoration Inc." /></div>
+      <div><label>Email Address</label><input type="email" id="ctr-reg-email" placeholder="you@company.com" /></div>
+      <div><label>Password</label><input type="password" id="ctr-reg-password" placeholder="Min. 8 characters" /></div>
+      <div><label>Phone Number</label><input id="ctr-reg-phone" placeholder="(555) 555-5555" /></div>
+      <div><label>Trade / Specialty</label>
+        <select id="ctr-reg-trade">
+          <option>General Contractor</option>
+          <option>Roofing</option>
+          <option>Water Damage Restoration</option>
+          <option>Fire & Smoke Restoration</option>
+          <option>Mold Remediation</option>
+          <option>Flooring</option>
+          <option>HVAC</option>
+          <option>Auto Body / Collision</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div><label>City & State / Province</label><input id="ctr-reg-location" placeholder="e.g. Tampa, Florida" /></div>
+      <div><label>Service Radius</label>
+        <select id="ctr-reg-radius">
+          <option value="30">Local — up to 30 km / 20 mi</option>
+          <option value="100">Regional — up to 100 km / 60 mi</option>
+          <option value="300">Provincial / State — up to 300 km</option>
+          <option value="9999">National — unlimited</option>
+        </select>
+      </div>
+      <div><label>Licence Number (optional)</label><input id="ctr-reg-licence" placeholder="Optional" /></div>
+    </div>
+    <div id="ctr-reg-error" style="display:none;background:var(--amber-l);border:1px solid var(--amber-b);border-radius:8px;padding:10px 14px;font-size:12.5px;color:#92400E;margin-top:12px;"></div>
+    <button onclick="contractorRegister()" class="btn btn-primary btn-lg" style="width:100%;margin-top:16px;background:var(--green);" id="ctr-reg-btn">
+      Submit for Approval
+    </button>`;
+
+  _showRoleCard('🔧', 'Contractor Portal', signinHTML, registerHTML);
+}
+
+async function contractorSignIn() {
+  var email    = (document.getElementById('ctr-login-email')   ||{}).value.trim();
+  var password = (document.getElementById('ctr-login-password')||{}).value;
+  var btn      = document.getElementById('ctr-login-btn');
+
+  if (!email || !password) { showCtrLoginError('Please enter your email and password.'); return; }
+  btn.textContent = 'Signing in…'; btn.disabled = true;
+
+  try {
+    if (SUPA && SUPA_URL !== 'YOUR_SUPABASE_URL') {
+      var res = await SUPA.auth.signInWithPassword({ email, password });
+      if (res.error) { showCtrLoginError(res.error.message); btn.textContent = 'Sign In to Contractor Portal'; btn.disabled = false; return; }
+      SESSION.userId = res.data.user.id;
+      SESSION.role   = 'contractor';
+      APP_ROLE       = 'contractor';
+    }
+    var card = document.querySelector('.welcome-card');
+    if (card && window._welcomeCardOriginal) card.innerHTML = window._welcomeCardOriginal;
+    hideAllScreens();
+    document.getElementById('screen-contractor').classList.add('active');
+    initContractorPortal();
+    toast('\u2713 Welcome back!');
+  } catch(e) {
+    showCtrLoginError('Something went wrong — please try again.');
+    btn.textContent = 'Sign In to Contractor Portal'; btn.disabled = false;
+  }
+}
+
+function showCtrLoginError(msg) {
+  var el = document.getElementById('ctr-login-error');
+  if (el) { el.style.display = 'block'; el.textContent = msg; }
+}
+
+async function contractorRegister() {
+  var first    = (document.getElementById('ctr-reg-first')   ||{}).value.trim();
+  var last     = (document.getElementById('ctr-reg-last')    ||{}).value.trim();
+  var company  = (document.getElementById('ctr-reg-company') ||{}).value.trim();
+  var email    = (document.getElementById('ctr-reg-email')   ||{}).value.trim();
+  var password = (document.getElementById('ctr-reg-password')||{}).value;
+  var phone    = (document.getElementById('ctr-reg-phone')   ||{}).value.trim();
+  var trade    = (document.getElementById('ctr-reg-trade')   ||{}).value;
+  var location = (document.getElementById('ctr-reg-location')||{}).value.trim();
+  var radius   = (document.getElementById('ctr-reg-radius')  ||{}).value;
+  var licence  = (document.getElementById('ctr-reg-licence') ||{}).value.trim();
+  var btn      = document.getElementById('ctr-reg-btn');
+
+  if (!first || !last)  { showCtrRegError('Please enter your full name.'); return; }
+  if (!company) { showCtrRegError('Please enter your company name.'); return; }
+  if (!email || email.indexOf('@') < 0) { showCtrRegError('Please enter a valid email.'); return; }
+  if (!password || password.length < 8) { showCtrRegError('Password must be at least 8 characters.'); return; }
+  if (!location) { showCtrRegError('Please enter your city and state/province.'); return; }
+
+  btn.textContent = 'Submitting…'; btn.disabled = true;
+
+  try {
+    if (SUPA && SUPA_URL !== 'YOUR_SUPABASE_URL') {
+      var res = await SUPA.auth.signUp({
+        email, password,
+        options: { data: { name: first + ' ' + last, company, trade, account_type: 'contractor' } }
+      });
+      if (res.error) { showCtrRegError(res.error.message); btn.textContent = 'Submit for Approval'; btn.disabled = false; return; }
+
+      await SUPA.from('contractor_registrations').insert({
+        auth_id:        res.data.user.id,
+        email:          email,
+        name:           first + ' ' + last,
+        company_name:   company,
+        phone:          phone,
+        trade:          trade,
+        location:       location,
+        service_radius: parseInt(radius),
+        licence_number: licence,
+        status:         'pending'
+      }).then(function(){}).catch(function(){});
+    }
+
+    var panel = document.getElementById('role-panel-register');
+    if (panel) panel.innerHTML = `
+      <div style="text-align:center;padding:20px 0;">
+        <div style="font-size:40px;margin-bottom:12px;">✅</div>
+        <div class="serif" style="font-size:18px;font-weight:700;color:var(--ink);margin-bottom:8px;">Application Submitted!</div>
+        <p style="font-size:13.5px;color:var(--ink3);line-height:1.65;">
+          Thanks ${first}! We'll review your application and activate your account within 24 hours.
+          You'll receive an email at <strong>${email}</strong> when you're approved.
+        </p>
+      </div>`;
+
+  } catch(e) {
+    showCtrRegError('Something went wrong — please try again.');
+    btn.textContent = 'Submit for Approval'; btn.disabled = false;
+  }
+}
+
+function showCtrRegError(msg) {
+  var el = document.getElementById('ctr-reg-error');
+  if (el) { el.style.display = 'block'; el.textContent = msg; }
 }
 
 function cancelProLogin() {
