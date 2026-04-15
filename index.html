@@ -3176,7 +3176,16 @@ async function contractorSignIn() {
   try {
     if (SUPA && SUPA_URL !== 'YOUR_SUPABASE_URL') {
       var res = await SUPA.auth.signInWithPassword({ email, password });
-      if (res.error) { showCtrLoginError(res.error.message); btn.textContent = 'Sign In to Contractor Portal'; btn.disabled = false; return; }
+      if (res.error) {
+        var ctrMsg = res.error.message;
+        if (ctrMsg.toLowerCase().indexOf('email not confirmed') !== -1) {
+          ctrMsg = 'Please confirm your email first — check your inbox for a confirmation link.';
+        }
+        showCtrLoginError(ctrMsg);
+        btn.textContent = 'Sign In to Contractor Portal';
+        btn.disabled = false;
+        return;
+      }
       SESSION.userId = res.data.user.id;
       SESSION.role   = 'contractor';
       APP_ROLE       = 'contractor';
@@ -3293,7 +3302,16 @@ async function proSignIn() {
     if (SUPA && SUPA_URL !== 'YOUR_SUPABASE_URL') {
       // ── Live mode ──
       var res = await SUPA.auth.signInWithPassword({ email, password });
-      if (res.error) { showProLoginError(res.error.message); btn.textContent = 'Sign In to Professional Portal'; btn.disabled = false; return; }
+      if (res.error) {
+        var msg = res.error.message;
+        if (msg.toLowerCase().indexOf('email not confirmed') !== -1) {
+          msg = 'Please confirm your email first — check your inbox for a confirmation link.';
+        }
+        showProLoginError(msg);
+        btn.textContent = 'Sign In to Professional Portal';
+        btn.disabled = false;
+        return;
+      }
 
       // Check they have a pro_users row
       var proRes = await SUPA.from('pro_users')
@@ -4992,7 +5010,16 @@ async function signIn() {
 
   try {
     var res = await SUPA.auth.signInWithPassword({ email: email, password: password });
-    if (res.error) { showSiError(res.error.message); btn.textContent = 'Sign In to My Claim'; btn.disabled = false; return; }
+    if (res.error) {
+      var siMsg = res.error.message;
+      if (siMsg.toLowerCase().indexOf('email not confirmed') !== -1) {
+        siMsg = 'Please confirm your email first — check your inbox for a confirmation link.';
+      }
+      showSiError(siMsg);
+      btn.textContent = 'Sign In to My Claim';
+      btn.disabled = false;
+      return;
+    }
 
     SESSION.userId = res.data.user.id;
     await ensurePolicyholder(res.data.user.id, email);
