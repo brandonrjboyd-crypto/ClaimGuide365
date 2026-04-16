@@ -746,7 +746,7 @@ function goPage(id) {
     settlement:   renderSettlement,
     analysis:     renderAnalysis,
     vault:        renderVault,
-    chat:         renderChat,
+    messages:     renderMessagesPage,
   };
   if(pages[id]) pages[id]();
 }
@@ -933,9 +933,10 @@ function renderDashboard() {
     +'</div>';
 
   // Quick action buttons
-  var quickActions = '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px;">'
+  var quickActions = '<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;margin-bottom:16px;">'
     +[
       { label:'Ask ClaimGuide', icon:'chat',   nav:'chat',      color:'var(--teal)' },
+      { label:'Messages',       icon:'chat',   nav:'messages',  color:'var(--green)' },
       { label:'Log a Contact',  icon:'phone',  nav:'commlog',   color:'var(--amber)' },
       { label:'My Documents',   icon:'lock',   nav:'vault',     color:'var(--ink2)' },
     ].map(function(a) {
@@ -4127,22 +4128,28 @@ function saveProFileNote() {
 }
 
 // ── Pro Messages view ─────────────────────────────────────────
-function renderProMessagesView(f, c) {
-  f.messages.forEach(function(m){ if(m.role==='client') m.read = true; });
+async function renderProMessagesView(f, c) {
+  f.messages = f.messages || [];
 
-  var msgs = f.messages && f.messages.length
-    ? f.messages.map(function(m) {
-        var isPro = m.role === 'pro';
-        return '<div style="display:flex;justify-content:'+(isPro?'flex-end':'flex-start')+';margin-bottom:10px;">'
-          +(!isPro?'<div style="width:28px;height:28px;border-radius:7px;background:var(--teal-l);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-right:8px;font-size:11px;font-weight:700;color:var(--teal);">'+(c.name||'C').charAt(0).toUpperCase()+'</div>':'')
-          +'<div style="max-width:72%;">'
-          +'<div style="'+(isPro?'background:var(--amber);color:#fff;border-radius:18px 18px 4px 18px;':'background:var(--white);border:1px solid var(--border);color:var(--ink);border-radius:18px 18px 18px 4px;')+'padding:10px 14px;font-size:13.5px;line-height:1.55;">'+m.text+'</div>'
-          +'<div style="font-size:11px;color:var(--ink4);margin-top:3px;text-align:'+(isPro?'right':'left')+';">'+m.time+(isPro?' · You':'')+'</div>'
-          +'</div></div>';
-      }).join('')
+  var claimId = f.dbId || null;
+  var dbMsgs  = claimId ? await loadMessages(claimId) : [];
+
+  if (claimId) await markMessagesRead(claimId, 'policyholder');
+
+  var msgs = dbMsgs.length
+    ? dbMsgs.map(function(m){ return renderMsgBubble(m, 'pro'); }).join('')
     : '<div style="text-align:center;padding:40px;color:var(--ink4);">'+svgIcon('chat',28,'var(--ink4)')+'<div style="margin-top:8px;font-size:13px;">No messages yet. Send the first message below.</div></div>';
 
-  var templates = ['I have reviewed your claim file. Here are my initial observations.','Please upload your insurance policy declarations page as soon as possible.','Do not sign any release forms or accept any settlement before speaking with me.','I need the insurer\'s written estimate — please upload it when you receive it.','Your Proof of Loss deadline is approaching. We need to act soon.','Good news — I have negotiated an improved settlement offer to discuss.','Please log any calls with your insurer immediately after they happen.','I have identified items missing from the insurer\'s estimate that we can supplement.'];
+  var templates = [
+    'I have reviewed your claim file. Here are my initial observations.',
+    'Please upload your insurance policy declarations page as soon as possible.',
+    'Do not sign any release forms or accept any settlement before speaking with me.',
+    'I need the insurer\'s written estimate — please upload it when you receive it.',
+    'Your Proof of Loss deadline is approaching. We need to act soon.',
+    'Good news — I have negotiated an improved settlement offer to discuss.',
+    'Please log any calls with your insurer immediately after they happen.',
+    'I have identified items missing from the insurer\'s estimate that we can supplement.'
+  ];
 
   document.getElementById('pro-body').innerHTML =
     '<div style="max-width:680px;margin:0 auto;display:flex;flex-direction:column;gap:12px;">'
@@ -4168,27 +4175,57 @@ function renderProMessagesView(f, c) {
   setTimeout(function(){
     var ml = document.getElementById('pro-msg-list');
     if(ml) ml.scrollTop = ml.scrollHeight;
-    // Wire template buttons
     var container = document.getElementById('pro-msg-templates');
     if(container) container.addEventListener('click', function(e) {
       var btn = e.target.closest('.pro-tpl-btn');
       if(btn) { var inp=document.getElementById('pro-msg-input'); if(inp){inp.value=btn.textContent.trim();inp.focus();} }
     });
   }, 50);
+
+  if (_msgPollInterval) clearInterval(_msgPollInterval);
+  if (claimId) {
+    _msgPollInterval = setInterval(async function() {
+      var fresh = await loadMessages(claimId);
+      await markMessagesRead(claimId, 'policyholder');
+      var list = document.getElementById('pro-msg-list');
+      if (list) {
+        list.innerHTML = fresh.length
+          ? fresh.map(function(m){ return renderMsgBubble(m, 'pro'); }).join('')
+          : '<div style="text-align:center;padding:40px;color:var(--ink4);">No messages yet.</div>';
+        list.scrollTop = list.scrollHeight;
+      }
+    }, 15000);
+  }
 }
 
-function sendProFileMessage() {
+async function sendProFileMessage() {
   var f   = PRO_FILES[PRO_ACTIVE_FILE];
   var inp = document.getElementById('pro-msg-input');
   var txt = inp ? inp.value.trim() : '';
-  if(!txt || !f) return;
-  if(!f.messages) f.messages = [];
-  f.messages.push({ role:'pro', text:txt, time:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}), read:true });
-  if(inp) inp.value = '';
-  saveProFileToDB(PRO_ACTIVE_FILE);
-  toast('\u2713 Message sent to '+f.claim.name);
-  renderProMessagesView(f, f.claim);
+  if (!txt || !f) return;
+  if (inp) inp.value = '';
+
+  var claimId  = f.dbId || null;
+  var proName  = SESSION.proName || 'Your PA';
+
+  if (claimId && SUPA) {
+    var sent = await sendMessage(claimId, 'pro', proName, txt);
+    if (sent) {
+      var list = document.getElementById('pro-msg-list');
+      if (list) {
+        list.innerHTML += renderMsgBubble(sent, 'pro');
+        list.scrollTop = list.scrollHeight;
+      }
+    }
+  } else {
+    // Fallback — store in memory for demo mode
+    if (!f.messages) f.messages = [];
+    f.messages.push({ role:'pro', text:txt, time:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}), read:true });
+    renderProMessagesView(f, f.claim);
+  }
+  toast('\u2713 Message sent to ' + f.claim.name);
 }
+
 
 // ══════════════════════════════════════════════
 // PRO: NAV HELPERS
@@ -5053,6 +5090,11 @@ async function sendPasswordReset() {
 // ── Auto-save on page navigation ─────────────────────────────
 var _origGoPage = goPage;
 goPage = function(id) {
+  // Stop any active message poll when navigating away
+  if (id !== 'messages' && _msgPollInterval) {
+    clearInterval(_msgPollInterval);
+    _msgPollInterval = null;
+  }
   _origGoPage(id);
   if (SESSION.userId) saveClaimToDB();
 };
@@ -5256,6 +5298,161 @@ async function restoreSession() {
     await loadClaimFromDB();
     return !!CLAIM.name;
   } catch(e) { return false; }
+}
+
+// ══════════════════════════════════════════════
+// SHARED MESSAGING (Policyholder ↔ Pro)
+// ══════════════════════════════════════════════
+
+var _msgPollInterval = null;
+
+// Get the claim ID for the current policyholder
+async function getCurrentClaimId() {
+  if (!SUPA || !SESSION.userId) return null;
+  try {
+    var phRes = await SUPA.from('policyholders')
+      .select('id').eq('auth_id', SESSION.userId).maybeSingle();
+    if (!phRes.data) return null;
+    var clRes = await SUPA.from('claims')
+      .select('id').eq('policyholder_id', phRes.data.id).maybeSingle();
+    return clRes.data ? clRes.data.id : null;
+  } catch(e) { return null; }
+}
+
+// Load all messages for a claim
+async function loadMessages(claimId) {
+  if (!SUPA || !claimId) return [];
+  try {
+    var res = await SUPA.from('messages')
+      .select('*')
+      .eq('claim_id', claimId)
+      .order('created_at', { ascending: true });
+    return res.data || [];
+  } catch(e) { return []; }
+}
+
+// Send a message
+async function sendMessage(claimId, senderRole, senderName, body) {
+  if (!SUPA || !claimId || !body.trim()) return null;
+  try {
+    var res = await SUPA.from('messages').insert({
+      claim_id:    claimId,
+      sender_role: senderRole,
+      sender_name: senderName,
+      body:        body.trim(),
+      read:        false
+    }).select('*').single();
+    return res.data;
+  } catch(e) { console.warn('sendMessage failed:', e.message); return null; }
+}
+
+// Mark messages as read
+async function markMessagesRead(claimId, senderRole) {
+  if (!SUPA || !claimId) return;
+  try {
+    await SUPA.from('messages')
+      .update({ read: true })
+      .eq('claim_id', claimId)
+      .eq('sender_role', senderRole)
+      .eq('read', false);
+  } catch(e) {}
+}
+
+// Count unread messages for a claim (from a given sender role)
+async function countUnread(claimId, fromRole) {
+  if (!SUPA || !claimId) return 0;
+  try {
+    var res = await SUPA.from('messages')
+      .select('id', { count: 'exact' })
+      .eq('claim_id', claimId)
+      .eq('sender_role', fromRole)
+      .eq('read', false);
+    return res.count || 0;
+  } catch(e) { return 0; }
+}
+
+// Render a single message bubble (shared between portals)
+function renderMsgBubble(m, viewerRole) {
+  var isMine = m.sender_role === viewerRole;
+  var name   = m.sender_name || (m.sender_role === 'pro' ? 'Your PA' : 'Client');
+  var time   = new Date(m.created_at).toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' });
+  var date   = new Date(m.created_at).toLocaleDateString([], { month:'short', day:'numeric' });
+
+  return '<div style="display:flex;justify-content:'+(isMine?'flex-end':'flex-start')+';margin-bottom:10px;align-items:flex-end;gap:8px;">'
+    + (!isMine ? '<div style="width:28px;height:28px;border-radius:7px;background:var(--teal-l);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700;color:var(--teal);">'+name.charAt(0).toUpperCase()+'</div>' : '')
+    + '<div style="max-width:72%;">'
+    + '<div style="'+(isMine?'background:var(--amber);color:#fff;border-radius:18px 18px 4px 18px;':'background:var(--white);border:1px solid var(--border);color:var(--ink);border-radius:18px 18px 18px 4px;')+'padding:10px 14px;font-size:13.5px;line-height:1.55;">'+escHtml(m.body)+'</div>'
+    + '<div style="font-size:11px;color:var(--ink4);margin-top:3px;text-align:'+(isMine?'right':'left')+';">'+date+' '+time+(isMine?' · You':'')+'</div>'
+    + '</div></div>';
+}
+
+function escHtml(str) {
+  return (str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ── Policyholder message page ────────────────────────────────
+async function renderMessagesPage() {
+  setPage('messages', 'Messages', SESSION.firmName ? 'Direct messages with ' + SESSION.firmName : 'Direct messages with your PA or attorney');
+
+  var claimId = await getCurrentClaimId();
+
+  if (!claimId || !SUPA) {
+    document.getElementById('page-body').innerHTML =
+      '<div class="card" style="text-align:center;padding:40px;color:var(--ink4);">No messages yet — your PA or attorney will appear here once they message you.</div>';
+    return;
+  }
+
+  var msgs = await loadMessages(claimId);
+  await markMessagesRead(claimId, 'pro'); // mark pro messages as read
+
+  var msgsHtml = msgs.length
+    ? msgs.map(function(m){ return renderMsgBubble(m, 'policyholder'); }).join('')
+    : '<div style="text-align:center;padding:40px;color:var(--ink4);">No messages yet. Your PA or attorney will appear here.</div>';
+
+  document.getElementById('page-body').innerHTML =
+    '<div style="max-width:680px;margin:0 auto;">'
+    + '<div class="card" style="padding:0;overflow:hidden;">'
+    + '<div id="ph-msg-list" style="padding:16px;min-height:320px;max-height:440px;overflow-y:auto;">'+msgsHtml+'</div>'
+    + '<div style="padding:12px 16px;border-top:1.5px solid var(--border);display:flex;gap:8px;">'
+    + '<input id="ph-msg-input" placeholder="Message your PA or attorney..." style="flex:1;" onkeydown="if(event.key===\'Enter\')sendPhMessage(\''+claimId+'\')">'
+    + '<button onclick="sendPhMessage(\''+claimId+'\')" class="btn btn-primary" style="flex-shrink:0;">Send</button>'
+    + '</div></div></div>';
+
+  // Scroll to bottom
+  setTimeout(function(){
+    var el = document.getElementById('ph-msg-list');
+    if (el) el.scrollTop = el.scrollHeight;
+  }, 50);
+
+  // Poll for new messages every 15 seconds
+  if (_msgPollInterval) clearInterval(_msgPollInterval);
+  _msgPollInterval = setInterval(async function() {
+    var fresh = await loadMessages(claimId);
+    await markMessagesRead(claimId, 'pro');
+    var list = document.getElementById('ph-msg-list');
+    if (list) {
+      list.innerHTML = fresh.length
+        ? fresh.map(function(m){ return renderMsgBubble(m, 'policyholder'); }).join('')
+        : '<div style="text-align:center;padding:40px;color:var(--ink4);">No messages yet.</div>';
+      list.scrollTop = list.scrollHeight;
+    }
+  }, 15000);
+}
+
+async function sendPhMessage(claimId) {
+  var inp = document.getElementById('ph-msg-input');
+  var txt = inp ? inp.value.trim() : '';
+  if (!txt) return;
+  if (inp) inp.value = '';
+
+  var sent = await sendMessage(claimId, 'policyholder', CLAIM.name || 'Policyholder', txt);
+  if (sent) {
+    var list = document.getElementById('ph-msg-list');
+    if (list) {
+      list.innerHTML += renderMsgBubble(sent, 'policyholder');
+      list.scrollTop = list.scrollHeight;
+    }
+  }
 }
 
 // ── Sign out ─────────────────────────────────────────────────
