@@ -1,0 +1,112 @@
+export default async function handler(req, res) {
+  // Only allow POST
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  const { name, email, firmName } = req.body || {};
+
+  if (!email) {
+    return res.status(400).json({ error: 'Email is required' });
+  }
+
+  const firstName = name ? name.split(' ')[0] : 'there';
+  const firmLine  = firmName
+    ? `<p>Your portal has been set up through <strong>${firmName}</strong>. Your PA or attorney can access your file and communicate with you directly through the portal.</p>`
+    : '';
+
+  const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #F7F5F0; margin: 0; padding: 0; }
+    .wrapper { max-width: 560px; margin: 40px auto; background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,.08); }
+    .header  { background: #0F4C50; padding: 28px 32px; }
+    .header h1 { color: #fff; margin: 0; font-size: 22px; font-family: Georgia, serif; }
+    .header p  { color: #CCF0F2; margin: 6px 0 0; font-size: 13px; }
+    .body    { padding: 28px 32px; }
+    .body p  { color: #475569; font-size: 14px; line-height: 1.65; margin: 0 0 14px; }
+    .cta     { display: inline-block; background: #D97706; color: #fff !important; text-decoration: none; padding: 13px 28px; border-radius: 8px; font-weight: 700; font-size: 14px; margin: 8px 0 20px; }
+    .step    { display: flex; gap: 14px; margin-bottom: 14px; align-items: flex-start; }
+    .step-num{ width: 28px; height: 28px; background: #0F4C50; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+    .step-text strong { color: #1E293B; font-size: 13.5px; display: block; margin-bottom: 2px; }
+    .step-text span   { color: #64748B; font-size: 12.5px; }
+    .footer  { background: #F8F7F4; padding: 18px 32px; border-top: 1px solid #E2E8F0; }
+    .footer p { color: #94A3B8; font-size: 11.5px; margin: 0; }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="header">
+      <h1>ClaimGuide 365</h1>
+      <p>Your personal insurance claim assistant</p>
+    </div>
+    <div class="body">
+      <p>Hi <strong>${firstName}</strong>,</p>
+      <p>Your claim portal is set up and ready. Everything you need to document, track, and manage your insurance claim is in one place.</p>
+      ${firmLine}
+      <p><strong>Here's what to do next:</strong></p>
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-text">
+          <strong>Document your damage</strong>
+          <span>Photograph every affected area and upload them to your portal while the evidence is fresh.</span>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-text">
+          <strong>Upload your policy</strong>
+          <span>Your declarations page tells us your coverage, limits, and deductibles — essential for your claim.</span>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-text">
+          <strong>Log every insurer contact</strong>
+          <span>Record every call and email with your adjuster in the Communication Log as soon as it happens.</span>
+        </div>
+      </div>
+      <a href="${process.env.APP_URL || 'https://claimguide365.com'}" class="cta">Go to My Claim Portal →</a>
+      <p style="font-size:12px;color:#94A3B8;">Bookmark this page — you can return to your claim anytime by signing in with this email address.</p>
+    </div>
+    <div class="footer">
+      <p>ClaimGuide 365 · <a href="${process.env.APP_URL || 'https://claimguide365.com'}" style="color:#0D6B72;">claimguide365.com</a> · You received this because you created an account. Reply to this email if you need help.</p>
+    </div>
+  </div>
+</body>
+</html>
+  `.trim();
+
+  try {
+    const response = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        from:    'ClaimGuide 365 <hello@claimguide365.com>',
+        to:      email,
+        subject: firmName
+          ? `Your ${firmName} claim portal is ready`
+          : 'Your ClaimGuide 365 claim portal is ready',
+        html,
+      }),
+    });
+
+    if (!response.ok) {
+      const err = await response.text();
+      console.error('Resend error:', err);
+      return res.status(500).json({ error: 'Email send failed' });
+    }
+
+    return res.status(200).json({ ok: true });
+  } catch (err) {
+    console.error('Send welcome error:', err);
+    return res.status(500).json({ error: err.message });
+  }
+}

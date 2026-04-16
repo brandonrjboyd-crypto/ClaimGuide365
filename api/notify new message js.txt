@@ -1,0 +1,93 @@
+export default async function handler(req, res) {
+  if (req.method !== 'POST') return res.status(405).end();
+
+  const {
+    recipientEmail,
+    recipientName,
+    senderName,
+    senderRole,   // 'pro' or 'policyholder'
+    messageBody,
+    firmName,
+  } = req.body || {};
+
+  if (!recipientEmail || !messageBody) {
+    return res.status(400).json({ error: 'recipientEmail and messageBody required' });
+  }
+
+  const isFromPro  = senderRole === 'pro';
+  const headerBg   = isFromPro ? '#0F2044' : '#0F4C50';
+  const headerSub  = isFromPro
+    ? `Message from ${firmName || 'your PA/attorney'}`
+    : 'Message from your client';
+
+  const subject = isFromPro
+    ? `New message from ${senderName || firmName || 'your PA'} — ClaimGuide 365`
+    : `New message from ${senderName || 'your client'} — ClaimGuide 365`;
+
+  const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #F7F5F0; margin: 0; padding: 0; }
+    .wrapper { max-width: 560px; margin: 40px auto; background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,.08); }
+    .header  { background: ${headerBg}; padding: 24px 32px; }
+    .header h1 { color: #fff; margin: 0; font-size: 20px; font-family: Georgia, serif; }
+    .header p  { color: #C8D8F0; margin: 6px 0 0; font-size: 13px; }
+    .body    { padding: 28px 32px; }
+    .body p  { color: #475569; font-size: 14px; line-height: 1.65; margin: 0 0 14px; }
+    .message-bubble { background: #F1F5F9; border-left: 4px solid #D97706; border-radius: 0 8px 8px 0; padding: 16px 20px; margin: 16px 0; font-size: 14px; color: #1E293B; line-height: 1.65; }
+    .cta     { display: inline-block; background: #D97706; color: #fff !important; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 700; font-size: 14px; margin: 8px 0 16px; }
+    .footer  { background: #F8F7F4; padding: 16px 32px; border-top: 1px solid #E2E8F0; }
+    .footer p { color: #94A3B8; font-size: 11.5px; margin: 0; }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="header">
+      <h1>You have a new message</h1>
+      <p>${headerSub}</p>
+    </div>
+    <div class="body">
+      <p>Hi ${recipientName ? recipientName.split(' ')[0] : 'there'},</p>
+      <p><strong>${senderName || (isFromPro ? 'Your PA/attorney' : 'Your client')}</strong> sent you a message on ClaimGuide 365:</p>
+      <div class="message-bubble">${messageBody}</div>
+      <p>Log in to reply directly in your portal.</p>
+      <a href="${process.env.APP_URL || 'https://claim-guide365.vercel.app'}" class="cta">Reply in Portal →</a>
+    </div>
+    <div class="footer">
+      <p>ClaimGuide 365 · Reply to this message by logging into your portal. Do not reply directly to this email.</p>
+    </div>
+  </div>
+</body>
+</html>`.trim();
+
+  try {
+    const response = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        from:    'ClaimGuide 365 <hello@claimguide365.com>',
+        to:      recipientEmail,
+        subject,
+        html,
+      }),
+    });
+
+    if (!response.ok) {
+      const err = await response.text();
+      console.error('Resend error:', err);
+      return res.status(500).json({ error: 'Email send failed' });
+    }
+
+    return res.status(200).json({ ok: true });
+  } catch (err) {
+    console.error('notify-new-message error:', err);
+    return res.status(500).json({ error: err.message });
+  }
+}
