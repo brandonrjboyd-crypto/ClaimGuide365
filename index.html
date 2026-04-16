@@ -172,6 +172,8 @@ label{font-size:13px;font-weight:600;color:var(--ink2);display:block;margin-bott
     </button>
   </div>
   <div class="welcome-card fade-up">
+    <!-- Firm branding banner — shown when accessed via /c/slug -->
+    <div id="firm-banner" style="display:none;background:var(--teal);color:#fff;padding:10px 20px;border-radius:10px;margin-bottom:16px;text-align:center;font-size:13px;font-weight:600;"></div>
     <!-- Logo -->
     <div style="text-align:center;margin-bottom:32px;">
       <div style="display:inline-block;background:var(--white);border-radius:16px;border:1.5px solid var(--border);box-shadow:var(--shadow);padding:10px 24px;">
@@ -5270,19 +5272,47 @@ startClaim = async function() {
 // ── Firm branding from URL slug ──────────────────────────────
 async function loadFirmFromSlug() {
   if (!SUPA || SUPA_URL === 'YOUR_SUPABASE_URL') return;
-  var path = window.location.pathname; // e.g. /c/berwick-law
+
+  // First check URL for slug
+  var path  = window.location.pathname;
   var match = path.match(/\/c\/([a-z0-9-]+)/i);
-  if (!match) return;
-  var slug = match[1];
+
+  // Also check sessionStorage in case they navigated away and back
+  var slug = match ? match[1] : sessionStorage.getItem('cg_firm_slug');
+  if (!slug) return;
+
   try {
-    var res = await SUPA.from('firms').select('id, name, primary_color, logo_url').eq('slug', slug).maybeSingle();
+    var res = await SUPA.from('firms')
+      .select('id, name, primary_color, logo_url, slug')
+      .eq('slug', slug)
+      .maybeSingle();
     if (!res.data) return;
+
     SESSION.firmId   = res.data.id;
     SESSION.firmName = res.data.name;
-    // Apply firm name to page title and any branding elements
+
+    // Persist slug in sessionStorage so it survives page navigations
+    sessionStorage.setItem('cg_firm_slug', res.data.slug);
+
+    // Apply branding
     document.title = res.data.name + ' — Claim Portal';
+
+    // Show firm banner on welcome screen
+    var banner = document.getElementById('firm-banner');
+    if (banner) {
+      banner.style.display = 'block';
+      banner.textContent   = '⚖️  You\'ve been referred by ' + res.data.name + ' — your portal is ready.';
+    }
+
+    // Update tagline on welcome screen if visible
     var tagline = document.querySelector('#screen-welcome .welcome-card p');
     if (tagline) tagline.textContent = 'Powered by ' + res.data.name;
+
+    // Apply custom colour if set
+    if (res.data.primary_color) {
+      document.documentElement.style.setProperty('--teal', '#' + res.data.primary_color);
+    }
+
   } catch(e) { /* non-fatal */ }
 }
 
@@ -5296,6 +5326,31 @@ async function restoreSession() {
     SESSION.userId = user.id;
     await ensurePolicyholder(user.id, user.email);
     await loadClaimFromDB();
+
+    // Restore firm link from policyholders table if not already set
+    if (!SESSION.firmId) {
+      var phRes = await SUPA.from('policyholders')
+        .select('firm_id')
+        .eq('auth_id', user.id)
+        .maybeSingle();
+      if (phRes.data && phRes.data.firm_id) {
+        SESSION.firmId = phRes.data.firm_id;
+        // Load firm name for display
+        var firmRes = await SUPA.from('firms')
+          .select('name, primary_color, slug')
+          .eq('id', phRes.data.firm_id)
+          .maybeSingle();
+        if (firmRes.data) {
+          SESSION.firmName = firmRes.data.name;
+          sessionStorage.setItem('cg_firm_slug', firmRes.data.slug);
+          document.title = firmRes.data.name + ' — Claim Portal';
+          if (firmRes.data.primary_color) {
+            document.documentElement.style.setProperty('--teal', '#' + firmRes.data.primary_color);
+          }
+        }
+      }
+    }
+
     return !!CLAIM.name;
   } catch(e) { return false; }
 }
@@ -5458,8 +5513,10 @@ async function sendPhMessage(claimId) {
 // ── Sign out ─────────────────────────────────────────────────
 async function signOut() {
   if (SUPA) await SUPA.auth.signOut();
-  SESSION.userId = null;
-  SESSION.firmId = null;
+  SESSION.userId   = null;
+  SESSION.firmId   = null;
+  SESSION.firmName = null;
+  sessionStorage.removeItem('cg_firm_slug');
   CLAIM = {
     name:'', address:'', insurer:'', claimno:'', losstype:'', dol:'', desc:'',
     policy:null, damages:[], contents:[], insurerEst:null, contractorEst:null,
