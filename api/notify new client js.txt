@@ -62,7 +62,7 @@ export default async function handler(req, res) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from:    'ClaimGuide 365 <hello@claimguide365.com>',
+        from:    'ClaimGuide 365 <onboarding@resend.dev>',
         to:      firmEmail,
         subject: `New client: ${clientName || 'New signup'} — ${lossType || 'Insurance Claim'}`,
         html,
