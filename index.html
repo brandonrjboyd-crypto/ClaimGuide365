@@ -407,7 +407,10 @@ label{font-size:13px;font-weight:600;color:var(--ink2);display:block;margin-bott
           <h1 style="font-size:17px;font-weight:700;color:var(--ink);font-family:'Lora',serif;" id="pro-page-title">Client Files</h1>
           <p style="font-size:12.5px;color:var(--ink4);margin-top:1px;" id="pro-page-sub"></p>
         </div>
-        <div id="pro-page-actions"></div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div id="pro-page-actions"></div>
+          <button onclick="signOut()" style="background:none;border:1px solid var(--border);border-radius:8px;padding:6px 14px;font-size:12px;color:var(--ink4);cursor:pointer;" onmouseover="this.style.borderColor='var(--teal)';this.style.color='var(--teal)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--ink4)'">Sign Out</button>
+        </div>
       </div>
       <div id="pro-body" style="flex:1;overflow-y:auto;padding:24px;"></div>
     </div>
@@ -460,7 +463,10 @@ label{font-size:13px;font-weight:600;color:var(--ink2);display:block;margin-bott
           <h1 style="font-size:17px;font-weight:700;color:var(--ink);font-family:'Lora',serif;" id="page-title">Dashboard</h1>
           <p style="font-size:12.5px;color:var(--ink4);margin-top:1px;" id="page-sub"></p>
         </div>
-        <div style="display:flex;align-items:center;gap:8px;" id="page-actions"></div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div id="page-actions"></div>
+          <button onclick="signOut()" style="background:none;border:1px solid var(--border);border-radius:8px;padding:6px 14px;font-size:12px;color:var(--ink4);cursor:pointer;" onmouseover="this.style.borderColor='var(--teal)';this.style.color='var(--teal)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--ink4)'">Sign Out</button>
+        </div>
       </div>
       <div id="page-body"></div>
     </div>
