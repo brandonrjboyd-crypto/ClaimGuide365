@@ -5245,18 +5245,15 @@ startClaim = async function() {
       // Save claim to DB
       await saveClaimToDB();
 
-      // Send welcome email via Resend (serverless function)
-      try {
-        await fetch('/api/send-welcome', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            name:     name,
-            email:    email,
-            firmName: SESSION.firmName || null
-          })
-        });
-      } catch(e) { /* email failure is non-fatal */ }
+      // Store email notification data in the claim so we can send
+      // it after the user confirms their email (onAuthStateChange → SIGNED_IN)
+      CLAIM._pendingWelcome = {
+        name:     name,
+        email:    email,
+        firmName: SESSION.firmName || null,
+        firmId:   SESSION.firmId   || null
+      };
+      await saveClaimToDB();
 
     } else {
       // ── Demo mode: no Supabase configured yet ─────────────
@@ -5403,8 +5400,66 @@ async function sendMessage(claimId, senderRole, senderName, body) {
       body:        body.trim(),
       read:        false
     }).select('*').single();
+
+    if (res.data) {
+      // Fire notification email in background — don't await
+      notifyMessageRecipient(claimId, senderRole, senderName, body.trim());
+    }
+
     return res.data;
   } catch(e) { console.warn('sendMessage failed:', e.message); return null; }
+}
+
+// Look up recipient details and send notification email
+async function notifyMessageRecipient(claimId, senderRole, senderName, body) {
+  try {
+    // Get the claim → policyholder → firm chain
+    var claimRes = await SUPA.from('claims')
+      .select('policyholder_id, firm_id, policyholders(email, name)')
+      .eq('id', claimId)
+      .maybeSingle();
+
+    if (!claimRes.data) return;
+
+    var phEmail  = claimRes.data.policyholders ? claimRes.data.policyholders.email : null;
+    var phName   = claimRes.data.policyholders ? claimRes.data.policyholders.name  : null;
+    var firmId   = claimRes.data.firm_id;
+
+    if (senderRole === 'pro') {
+      // Pro sent → notify policyholder
+      if (!phEmail) return;
+      var firmRes = await SUPA.from('firms').select('name').eq('id', firmId).maybeSingle();
+      await fetch('/api/notify-new-message', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          recipientEmail: phEmail,
+          recipientName:  phName,
+          senderName:     senderName,
+          senderRole:     'pro',
+          messageBody:    body,
+          firmName:       firmRes.data ? firmRes.data.name : null
+        })
+      });
+    } else {
+      // Policyholder sent → notify the pro (firm email)
+      if (!firmId) return;
+      var firmRes2 = await SUPA.from('firms').select('name, email').eq('id', firmId).maybeSingle();
+      if (!firmRes2.data || !firmRes2.data.email) return;
+      await fetch('/api/notify-new-message', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          recipientEmail: firmRes2.data.email,
+          recipientName:  firmRes2.data.name,
+          senderName:     senderName || phName,
+          senderRole:     'policyholder',
+          messageBody:    body,
+          firmName:       firmRes2.data.name
+        })
+      });
+    }
+  } catch(e) { /* notification failure is non-fatal */ }
 }
 
 // Mark messages as read
@@ -5621,6 +5676,76 @@ function addSignOutButton() {
 
   // No session — show welcome screen as normal
   syncLogos();
+
+  // Listen for auth state changes — fires when user confirms email
+  if (SUPA) {
+    SUPA.auth.onAuthStateChange(async function(event, session) {
+      if (event === 'SIGNED_IN' && session) {
+
+        // Send pending welcome emails if this is a first-time confirmation
+        try {
+          var phRes = await SUPA.from('policyholders')
+            .select('id')
+            .eq('auth_id', session.user.id)
+            .maybeSingle();
+
+          if (phRes.data) {
+            var claimRes = await SUPA.from('claims')
+              .select('claim_data')
+              .eq('policyholder_id', phRes.data.id)
+              .maybeSingle();
+
+            if (claimRes.data && claimRes.data.claim_data && claimRes.data.claim_data._pendingWelcome) {
+              var pw = claimRes.data.claim_data._pendingWelcome;
+
+              // Send welcome email to policyholder
+              await fetch('/api/send-welcome', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  name:     pw.name,
+                  email:    pw.email,
+                  firmName: pw.firmName || null
+                })
+              }).catch(function(){});
+
+              // Notify firm if signed up via firm link
+              if (pw.firmId) {
+                var firmLookup = await SUPA.from('firms')
+                  .select('email, name')
+                  .eq('id', pw.firmId)
+                  .maybeSingle();
+
+                if (firmLookup.data && firmLookup.data.email) {
+                  var cd = claimRes.data.claim_data;
+                  await fetch('/api/notify-new-client', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      clientName:  pw.name,
+                      clientEmail: pw.email,
+                      lossType:    cd.losstype   || '',
+                      insurer:     cd.insurer    || '',
+                      address:     cd.address    || '',
+                      firmName:    pw.firmName   || firmLookup.data.name,
+                      firmEmail:   firmLookup.data.email
+                    })
+                  }).catch(function(){});
+                }
+              }
+
+              // Clear the pending flag so emails don't send twice
+              var updatedClaim = Object.assign({}, claimRes.data.claim_data);
+              delete updatedClaim._pendingWelcome;
+              await SUPA.from('claims')
+                .update({ claim_data: updatedClaim })
+                .eq('policyholder_id', phRes.data.id);
+            }
+          }
+        } catch(e) { /* non-fatal */ }
+      }
+    });
+  }
 })();
 </script>
 </body>
