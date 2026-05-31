@@ -482,7 +482,7 @@ label{font-size:13px;font-weight:600;color:var(--ink2);display:block;margin-bott
 // ══════════════════════════════════════════════
 // CONSTANTS & STATE
 // ══════════════════════════════════════════════
-const DEMO_MODE = false;
+const DEMO_MODE = true;
 const MODEL = 'claude-sonnet-4-20250514';
 
 var CLAIM = {
@@ -755,6 +755,7 @@ function goPage(id) {
     analysis:     renderAnalysis,
     vault:        renderVault,
     messages:     renderMessagesPage,
+    chat:         renderChat,
   };
   if(pages[id]) pages[id]();
 }
@@ -796,40 +797,6 @@ function pickClaimType(type) {
 function backToTypeSelect() {
   document.getElementById('step-type').style.display    = 'block';
   document.getElementById('step-details').style.display = 'none';
-}
-
-function startClaim() {
-  var isAuto   = CLAIM.claimType === 'auto';
-  var name     = (document.getElementById('w-name')    ||{}).value.trim();
-  var addr     = (document.getElementById('w-addr')    ||{}).value.trim();
-  var insurer  = (document.getElementById('w-insurer') ||{}).value.trim();
-  var email    = (document.getElementById('w-email')   ||{}).value.trim();
-  var password = (document.getElementById('w-password')||{}).value;
-  if(!name)    { toast('Please enter your name','#D97706'); return; }
-  if(!addr)    { toast(isAuto?'Please enter your vehicle details':'Please enter your property address','#D97706'); return; }
-  if(!insurer) { toast('Please enter your insurance company','#D97706'); return; }
-  if(!email||email.indexOf('@')<0) { toast('Please enter a valid email address','#D97706'); return; }
-  if(!password||password.length<8) { toast('Password must be at least 8 characters','#D97706'); return; }
-  CLAIM.name    = name;
-  CLAIM.address = isAuto ? (document.getElementById('w-vehicle')||{}).value.trim()||addr : addr;
-  CLAIM.insurer = insurer;
-  CLAIM.claimno = (document.getElementById('w-claimno')||{}).value.trim();
-  CLAIM.email   = email;
-  CLAIM.desc    = (document.getElementById('w-desc')||{}).value.trim();
-  if(isAuto) {
-    CLAIM.losstype = (document.getElementById('w-losstype-auto')||{}).value || 'Collision';
-    CLAIM.dol      = (document.getElementById('w-dol-auto')     ||{}).value || '';
-    CLAIM.auto     = CLAIM.auto || {};
-    CLAIM.auto.vehicleMake = (document.getElementById('w-vehicle')||{}).value.trim();
-    CLAIM.auto.plate       = (document.getElementById('w-plate')  ||{}).value.trim();
-  } else {
-    CLAIM.losstype = (document.getElementById('w-losstype')||{}).value || 'Water Damage';
-    CLAIM.dol      = (document.getElementById('w-dol')     ||{}).value || '';
-  }
-  seedTimeline();
-  hideAllScreens();
-  document.getElementById('screen-app').classList.add('active');
-  renderDashboard();
 }
 
 function backToWelcome() {
@@ -889,6 +856,10 @@ function renderDashboard() {
   var headerBorder = isAuto ? 'var(--amber-b)' : 'var(--teal-b)';
   var headerIcon   = isAuto ? '🚗' : '🏠';
 
+  var claimnoLine = CLAIM.claimno
+    ? 'Claim # '+CLAIM.claimno
+    : '<span style="color:var(--amber);font-style:italic;">No claim number yet — tap to add</span>';
+
   var headerCard = '<div class="card" style="background:'+headerBg+';border-color:'+headerBorder+';margin-bottom:16px;">'
     +'<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">'
     +'<div style="display:flex;align-items:center;gap:14px;">'
@@ -898,7 +869,12 @@ function renderDashboard() {
     +'<div style="font-size:12.5px;color:var(--ink3);margin-top:2px;">'
     + (isAuto ? (CLAIM.address||CLAIM.auto.vehicleMake||'Vehicle') : CLAIM.address)
     +' &nbsp;·&nbsp; '+CLAIM.losstype+' &nbsp;·&nbsp; '+CLAIM.insurer+'</div>'
-    +(CLAIM.claimno ? '<div style="font-size:12px;color:var(--ink4);margin-top:2px;">Claim # '+CLAIM.claimno+'</div>' : '')
+    +'<div style="display:flex;align-items:center;gap:6px;margin-top:3px;">'
+    +'<span style="font-size:12px;color:var(--ink4);">'+claimnoLine+'</span>'
+    +'<button onclick="openEditClaim()" title="Edit claim details" style="background:none;border:none;cursor:pointer;padding:2px 4px;border-radius:5px;color:var(--ink4);display:inline-flex;align-items:center;transition:color .15s,background .15s;" onmouseover="this.style.color=\''+headerColor+'\';this.style.background=\'rgba(0,0,0,.06)\'" onmouseout="this.style.color=\'var(--ink4)\';this.style.background=\'none\'">'
+    +'<svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>'
+    +'</button>'
+    +'</div>'
     +'</div></div>'
     +'<div style="text-align:right;">'
     +'<div class="serif" style="font-size:32px;font-weight:700;color:'+headerColor+';line-height:1;">'+pct+'<span style="font-size:16px;">%</span></div>'
@@ -975,6 +951,106 @@ function renderDashboard() {
 }
 
 
+
+// ══════════════════════════════════════════════
+// EDIT CLAIM DETAILS MODAL
+// ══════════════════════════════════════════════
+function openEditClaim() {
+  var isAuto = CLAIM.claimType === 'auto';
+
+  // Loss type options
+  var propLossTypes = ['Water Damage','Fire & Smoke','Wind & Hail','Theft & Vandalism','Roof Damage','Mold','Foundation','Flood','Other'];
+  var autoLossTypes = ['Collision','Comprehensive','Theft','Hit & Run','Weather Damage','Other'];
+  var lossTypes = isAuto ? autoLossTypes : propLossTypes;
+
+  var ltOptions = lossTypes.map(function(t){
+    return '<option value="'+t+'"'+(CLAIM.losstype===t?' selected':'')+'>'+t+'</option>';
+  }).join('');
+
+  var overlay = document.createElement('div');
+  overlay.id = 'edit-claim-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(28,26,23,.45);z-index:8000;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(2px);animation:fadeIn .15s ease;';
+
+  overlay.innerHTML =
+    '<div style="background:var(--white);border-radius:16px;box-shadow:var(--shadow2);width:100%;max-width:500px;max-height:90vh;overflow-y:auto;animation:fadeUp .2s cubic-bezier(.16,1,.3,1);">'
+    // Header
+    +'<div style="display:flex;align-items:center;justify-content:space-between;padding:18px 20px 14px;border-bottom:1.5px solid var(--border);">'
+    +'<div>'
+    +'<div style="font-size:15px;font-weight:700;color:var(--ink);">Edit Claim Details</div>'
+    +'<div style="font-size:12px;color:var(--ink4);margin-top:2px;">Update any field — files stay as-is</div>'
+    +'</div>'
+    +'<button onclick="closeEditClaim()" style="background:var(--paper);border:none;border-radius:8px;width:30px;height:30px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--ink3);">'
+    +'<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>'
+    +'</button>'
+    +'</div>'
+    // Form body
+    +'<div style="padding:20px;display:flex;flex-direction:column;gap:14px;">'
+    // Name
+    +'<div><label>Full Name</label><input id="ecl-name" value="'+escHtml(CLAIM.name||'')+'" placeholder="Your full name"></div>'
+    // Address / Vehicle
+    +'<div><label>'+(isAuto?'Vehicle (Year, Make & Model)':'Property Address')+'</label>'
+    +'<input id="ecl-address" value="'+escHtml(CLAIM.address||'')+'" placeholder="'+(isAuto?'e.g. 2021 Honda CRV':'123 Main St, City')+'"></div>'
+    // Insurer
+    +'<div><label>Insurance Company</label><input id="ecl-insurer" value="'+escHtml(CLAIM.insurer||'')+'" placeholder="e.g. State Farm"></div>'
+    // Claim number — highlighted
+    +'<div style="background:var(--amber-l);border:1.5px solid var(--amber-b);border-radius:10px;padding:12px 14px;">'
+    +'<label style="color:var(--amber);">Claim Number <span style="font-weight:400;color:var(--ink4);">(from your insurer)</span></label>'
+    +'<input id="ecl-claimno" value="'+escHtml(CLAIM.claimno||'')+'" placeholder="e.g. CLM-2024-00123" style="border-color:var(--amber-b);" onfocus="this.style.borderColor=\'var(--amber)\'" onblur="this.style.borderColor=\'var(--amber-b)\'">'
+    +'</div>'
+    // Loss type
+    +'<div><label>Type of Loss</label>'
+    +'<select id="ecl-losstype">'+ltOptions+'</select></div>'
+    // Date of loss
+    +'<div><label>Date of Loss</label>'
+    +'<input id="ecl-dol" type="date" value="'+(CLAIM.dol||'')+'" style="max-width:200px;"></div>'
+    // Description
+    +'<div><label>Brief Description</label>'
+    +'<textarea id="ecl-desc" rows="3" placeholder="Describe what happened…" style="resize:vertical;">'+escHtml(CLAIM.desc||'')+'</textarea></div>'
+    +'</div>'
+    // Footer
+    +'<div style="display:flex;gap:10px;padding:14px 20px;border-top:1.5px solid var(--border);background:var(--paper);border-radius:0 0 16px 16px;">'
+    +'<button onclick="saveEditClaim()" class="btn btn-primary" style="flex:1;">Save Changes</button>'
+    +'<button onclick="closeEditClaim()" class="btn btn-ghost">Cancel</button>'
+    +'</div>'
+    +'</div>';
+
+  document.body.appendChild(overlay);
+  // Focus the claim number field since that's the most common reason to open this
+  setTimeout(function(){ var el=document.getElementById('ecl-claimno'); if(el) el.focus(); }, 120);
+}
+
+function closeEditClaim() {
+  var ov = document.getElementById('edit-claim-overlay');
+  if (ov) ov.remove();
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function saveEditClaim() {
+  var name    = (document.getElementById('ecl-name')     ||{}).value||'';
+  var address = (document.getElementById('ecl-address')  ||{}).value||'';
+  var insurer = (document.getElementById('ecl-insurer')  ||{}).value||'';
+  var claimno = (document.getElementById('ecl-claimno')  ||{}).value||'';
+  var losstype= (document.getElementById('ecl-losstype') ||{}).value||'';
+  var dol     = (document.getElementById('ecl-dol')      ||{}).value||'';
+  var desc    = (document.getElementById('ecl-desc')     ||{}).value||'';
+
+  CLAIM.name     = name.trim();
+  CLAIM.address  = address.trim();
+  CLAIM.insurer  = insurer.trim();
+  CLAIM.claimno  = claimno.trim();
+  CLAIM.losstype = losstype;
+  CLAIM.dol      = dol;
+  CLAIM.desc     = desc.trim();
+
+  closeEditClaim();
+  saveClaimToDB();   // persist if backend is live
+  renderDashboard(); // refresh the dashboard
+  setupSidebar();    // refresh sidebar address/meta
+  toast('✓ Claim details updated');
+}
 
 // ══════════════════════════════════════════════
 // HELPERS
@@ -4396,7 +4472,7 @@ function renderContractorFinder() {
   setPage('contractors',
     isAuto ? 'Repair Shops' : 'Contractors',
     'Find a vetted contractor in your area · Track your own contractors below',
-    '<button onclick="addContractor()" class="btn btn-ghost btn-sm">' + svgIcon('plus',13) + ' Add My Own</button>'
+    '<button onclick="showAddContractorForm()" class="btn btn-ghost btn-sm">' + svgIcon('plus',13) + ' Add My Own</button>'
   );
 
   // Find regional matches
@@ -4520,7 +4596,7 @@ function requestContractorQuote(ctrId) {
   renderContractorFinder();
 }
 
-function addContractor() {
+function showAddContractorForm() {
   var form = document.getElementById('ctr-add-form');
   if(form) { form.style.display = ''; form.scrollIntoView({behavior:'smooth'}); }
 }
@@ -5053,6 +5129,13 @@ async function signIn() {
 
   btn.textContent = 'Signing in…'; btn.disabled = true;
 
+  // Demo build: no backend, no persisted accounts.
+  if (!SUPA) {
+    showSiError('Demo build — accounts are not persisted. Click "← New claim" and use "Create My Account" instead.');
+    btn.textContent = 'Sign In to My Claim'; btn.disabled = false;
+    return;
+  }
+
   try {
     var res = await SUPA.auth.signInWithPassword({ email: email, password: password });
     if (res.error) {
@@ -5088,6 +5171,11 @@ function showSiError(msg) {
 async function sendPasswordReset() {
   var email = (document.getElementById('fp-email')||{}).value.trim();
   if (!email) { toast('Please enter your email address', '#D97706'); return; }
+  if (!SUPA) {
+    toast('Demo build \u2014 password reset is disabled', '#D97706');
+    showSignIn();
+    return;
+  }
   await SUPA.auth.resetPasswordForEmail(email, {
     redirectTo: window.location.origin + '/?reset=true'
   });
@@ -5178,9 +5266,8 @@ async function loadClaimFromDB() {
   } catch(e) { console.warn('Load failed:', e.message); }
 }
 
-// ── Replace startClaim with async Supabase version ───────────
-var _origStartClaim = startClaim;
-startClaim = async function() {
+// ── startClaim: validates the welcome form, creates the Supabase auth user, persists the claim ──
+async function startClaim() {
   var isAuto   = CLAIM.claimType === 'auto';
   var name     = (document.getElementById('w-name')    ||{}).value.trim();
   var addr     = (document.getElementById('w-addr')    ||{}).value.trim();
@@ -5227,61 +5314,62 @@ startClaim = async function() {
       });
 
       if (signUpRes.error) {
-        toast(signUpRes.error.message, '#D97706');
-        if (btn) { btn.textContent = 'Create My Account & Start My Claim'; btn.disabled = false; }
-        return;
-      }
+        // Backend unreachable (CORS, paused project, offline, etc.) — log and proceed
+        // in local-only mode so the user can still test the rest of the app.
+        console.warn('Sign-up failed — continuing in local-only mode:', signUpRes.error.message);
+        toast('Backend unavailable — continuing locally for testing', '#D97706');
+      } else {
+        SESSION.userId = signUpRes.data.user.id;
 
-      SESSION.userId = signUpRes.data.user.id;
-
-      // Create policyholder row
-      await SUPA.from('policyholders').insert({
-        auth_id:  signUpRes.data.user.id,
-        email:    email,
-        name:     name,
-        firm_id:  SESSION.firmId || null
-      });
-
-      // Save claim to DB
-      await saveClaimToDB();
-
-      // Send welcome email to policyholder immediately
-      try {
-        await fetch('/api/send-welcome', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            name:     name,
-            email:    email,
-            firmName: SESSION.firmName || null
-          })
+        // Create policyholder row
+        await SUPA.from('policyholders').insert({
+          auth_id:  signUpRes.data.user.id,
+          email:    email,
+          name:     name,
+          firm_id:  SESSION.firmId || null
         });
-      } catch(e) { /* non-fatal */ }
 
-      // Notify the firm if signed up via a firm link
-      if (SESSION.firmId) {
+        // Save claim to DB
+        await saveClaimToDB();
+
+        // Send welcome email to policyholder immediately
         try {
-          var firmLookup = await SUPA.from('firms')
-            .select('email, name')
-            .eq('id', SESSION.firmId)
-            .maybeSingle();
-
-          if (firmLookup.data && firmLookup.data.email) {
-            await fetch('/api/notify-new-client', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                clientName:  name,
-                clientEmail: email,
-                lossType:    CLAIM.losstype  || '',
-                insurer:     CLAIM.insurer   || '',
-                address:     CLAIM.address   || '',
-                firmName:    SESSION.firmName || firmLookup.data.name,
-                firmEmail:   firmLookup.data.email
-              })
-            });
-          }
+          await fetch('/api/send-welcome', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              name:     name,
+              email:    email,
+              firmName: SESSION.firmName || null
+            })
+          });
         } catch(e) { /* non-fatal */ }
+
+        // Notify the firm if signed up via a firm link
+        if (SESSION.firmId) {
+          try {
+            var firmLookup = await SUPA.from('firms')
+              .select('email, name')
+              .eq('id', SESSION.firmId)
+              .maybeSingle();
+
+            if (firmLookup.data && firmLookup.data.email) {
+              await fetch('/api/notify-new-client', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  clientName:  name,
+                  clientEmail: email,
+                  lossType:    CLAIM.losstype  || '',
+                  insurer:     CLAIM.insurer   || '',
+                  address:     CLAIM.address   || '',
+                  firmName:    SESSION.firmName || firmLookup.data.name,
+                  firmEmail:   firmLookup.data.email
+                })
+              });
+            }
+          } catch(e) { /* non-fatal */ }
+        }
       }
 
     } else {
@@ -5622,21 +5710,21 @@ async function signOut() {
   toast('Signed out');
 }
 
-// ── Add sign-out button to app sidebar ───────────────────────
-function addSignOutButton() {
-  var sidebar = document.getElementById('sidebar');
-  if (!sidebar || document.getElementById('signout-btn')) return;
-  var btn = document.createElement('div');
-  btn.id = 'signout-btn';
-  btn.style.cssText = 'padding:12px 16px;border-top:1px solid var(--border);';
-  btn.innerHTML = '<button onclick="signOut()" style="width:100%;background:none;border:1px solid var(--border);border-radius:8px;padding:8px;font-size:12px;color:var(--ink4);cursor:pointer;">Sign Out</button>';
-  sidebar.appendChild(btn);
-}
-
 // ══════════════════════════════════════════════
 // INIT
 // ══════════════════════════════════════════════
 (async function() {
+  // ── DEMO BUILD ────────────────────────────────────────────────
+  // Supabase is intentionally NOT initialised here so every backend
+  // call (auth, claim save/load, session restore) short-circuits to
+  // local-only mode. Every DB helper already guards on `if (SUPA)`.
+  // To re-enable live backend, restore the original init block.
+  if (DEMO_MODE) {
+    console.info('ClaimGuide 365 — demo build: backend disabled, all data is local.');
+    syncLogos();
+    return;
+  }
+
   // Initialise Supabase client if configured
   if (window.supabase && SUPA_URL !== 'YOUR_SUPABASE_URL') {
     SUPA = window.supabase.createClient(SUPA_URL, SUPA_KEY);
@@ -5696,7 +5784,6 @@ function addSignOutButton() {
         hideAllScreens();
         document.getElementById('screen-app').classList.add('active');
         renderDashboard();
-        addSignOutButton();
         toast('\u2713 Welcome back, ' + CLAIM.name.split(' ')[0] + '!');
         return;
       }
