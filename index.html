@@ -2774,8 +2774,8 @@ function renderChat() {
   if (!CHAT_HISTORY.length) {
     msgsHtml = '<div style="display:flex;gap:10px;margin-bottom:16px;align-items:flex-start;">'
       +'<div style="width:36px;height:36px;border-radius:10px;background:var(--teal);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700;color:#fff;font-family:\'DM Mono\',monospace;letter-spacing:-.5px;">CG</div>'
-      +'<div class="chat-bubble-ai"><strong>Hi '+CLAIM.name.split(' ')[0]+'.</strong> I\'m ClaimGuide AI — your claim advocate.<br><br>'
-      +'I know your situation: a <strong>'+CLAIM.losstype+'</strong> claim with <strong>'+CLAIM.insurer+'</strong> at '+CLAIM.address+'.<br><br>'
+      +'<div class="chat-bubble-ai"><strong>Hi '+(CLAIM.name||'there').split(' ')[0]+'.</strong> I\'m ClaimGuide AI — your claim advocate.<br><br>'
+      +'I know your situation: a <strong>'+(CLAIM.losstype||'property')+'</strong> claim with <strong>'+(CLAIM.insurer||'your insurer')+'</strong>'+(CLAIM.address?' at '+CLAIM.address:'')+'.<br><br>'
       +'Ask me anything about your policy, your rights, estimates, what the insurer can and can\'t do, or what to do next. I\'ll give you real answers.'
       +'</div></div>';
   } else {
@@ -2815,7 +2815,7 @@ function renderChat() {
 
     // Context strip
     +'<div class="card-flat" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;">'
-    +[['Your Claim',CLAIM.losstype],['Insurer',CLAIM.insurer||'—'],['Property',CLAIM.address.split(',')[0]||'—']].map(function(p,i){
+    +[['Your Claim',CLAIM.losstype||'—'],['Insurer',CLAIM.insurer||'—'],['Property',(CLAIM.address||'').split(',')[0]||'—']].map(function(p,i){
         return '<div style="padding:8px 14px;'+(i<2?'border-right:1px solid var(--border);':'')+'"><div style="font-size:10px;font-weight:700;color:var(--ink4);letter-spacing:.04em;">'+p[0]+'</div><div style="font-size:12.5px;font-weight:600;color:var(--ink);margin-top:1px;">'+p[1]+'</div></div>';
     }).join('')
     +'</div>'
