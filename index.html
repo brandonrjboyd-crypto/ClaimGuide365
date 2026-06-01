@@ -4244,7 +4244,12 @@ function renderProVaultView(f, c) {
     + '</div>'
 
     + '<div class="card">'
-    + '<div style="font-size:14px;font-weight:700;color:var(--ink);margin-bottom:12px;">' + svgIcon('doc',14,'var(--teal)') + ' All Documents</div>'
+    + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">'
+    + '<div style="font-size:14px;font-weight:700;color:var(--ink);">' + svgIcon('doc',14,'var(--teal)') + ' All Documents</div>'
+    + (docs.filter(function(d){ return !d.docTypeId; }).length
+        ? '<button onclick="autoSortClientDocs()" class="btn btn-ghost btn-sm" style="font-size:12px;color:var(--teal);border-color:var(--teal-b);">' + svgIcon('brain',11,'var(--teal)') + ' Auto-sort untagged</button>'
+        : '')
+    + '</div>'
     + docRows
     + '</div>'
 
@@ -4270,33 +4275,249 @@ function removeProDoc(storeKey) {
   renderProVaultView(f, f.claim);
 }
 
+// ── Doc type definitions (shared by keyword matcher + AI classifier) ──
+var PRO_DOC_TYPES = [
+  { id:'pro-pol',  label:'Policy / Declarations',   keywords:['policy','declaration','decl','coverage','endorsement','schedule of insurance'] },
+  { id:'pro-est',  label:'Insurer Estimate',         keywords:['xactimate','adjuster estimate','insurer estimate','claim estimate','scope of loss','xact','insurance estimate','adjuster scope'] },
+  { id:'pro-ctr',  label:'Contractor Estimate',      keywords:['contractor','repair estimate','restoration','remediation','mitigation','quote','proposal','bid','construction estimate'] },
+  { id:'pro-den',  label:'Denial / ROR Letter',      keywords:['denial','denied','reservation of rights','ror','coverage position','declination','coverage dispute','coverage letter'] },
+  { id:'pro-rep',  label:'Engineer / Expert Report', keywords:['engineering','engineer','inspection report','expert report','hygienist','consultant report','forensic','cause of loss','origin'] },
+  { id:'pro-cor',  label:'Correspondence',           keywords:['letter','correspondence','email','notice','demand','certified','response','communication'] },
+];
+
+// ── Keyword-based classifier (runs on filename, instant) ──────
+function classifyDocByKeyword(filename) {
+  var name = filename.toLowerCase().replace(/[_\-\.]/g,' ');
+  for (var i = 0; i < PRO_DOC_TYPES.length; i++) {
+    var dt = PRO_DOC_TYPES[i];
+    for (var j = 0; j < dt.keywords.length; j++) {
+      if (name.indexOf(dt.keywords[j]) >= 0) {
+        return { id: dt.id, label: dt.label };
+      }
+    }
+  }
+  return null;
+}
+
+// ── AI classifier — filename + first ~800 chars of text content ─
+async function classifyDocByAI(filename, textSnippet) {
+  var typeList = PRO_DOC_TYPES.map(function(dt){ return dt.id + ': ' + dt.label; }).join('\n');
+  var prompt = 'You are classifying an insurance claim document for a professional claim file.\n\n'
+    + 'Document filename: ' + filename + '\n'
+    + (textSnippet ? 'Document text (first excerpt):\n' + textSnippet.slice(0,800) + '\n\n' : '\n')
+    + 'Classify this document into exactly one of these categories:\n' + typeList + '\n'
+    + 'If none fit well, reply with: pro-misc: Other Document\n\n'
+    + 'Reply with ONLY the category id and label in this exact format: id: label\n'
+    + 'Example: pro-est: Insurer Estimate';
+
+  try {
+    var res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 60,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    var data = await res.json();
+    var text = (data.content && data.content[0] && data.content[0].text || '').trim();
+    var match = text.match(/^(pro-[a-z]+):\s*(.+)$/);
+    if (match) return { id: match[1], label: match[2].trim() };
+  } catch(e) { console.warn('AI classify failed:', e.message); }
+  return { id: 'pro-misc', label: 'Other Document' };
+}
+
+// ── Extract plain text snippet from a base64 file (PDF text layer or filename fallback) ──
+function extractTextSnippet(data) {
+  // For text-based PDFs that have a text layer, try to pull readable ASCII
+  try {
+    if (data.mt === 'application/pdf' && data.b64) {
+      var raw = atob(data.b64.slice(0, 8000));
+      // Extract printable ASCII runs > 4 chars
+      var runs = raw.match(/[ -~]{4,}/g) || [];
+      var text = runs.join(' ').replace(/\s+/g,' ').slice(0,800);
+      if (text.length > 40) return text;
+    }
+  } catch(e) {}
+  return '';
+}
+
+// ── Show category confirmation modal ─────────────────────────
+function showCategoryConfirm(filename, detectedId, detectedLabel, onAccept, onReject) {
+  var existing = document.getElementById('cat-confirm-overlay');
+  if (existing) existing.remove();
+
+  var overlay = document.createElement('div');
+  overlay.id = 'cat-confirm-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(28,26,23,.4);z-index:9000;display:flex;align-items:flex-end;justify-content:center;padding:0 0 32px;animation:fadeIn .15s ease;';
+
+  var dt = PRO_DOC_TYPES.find(function(d){ return d.id === detectedId; }) || { id:'pro-misc', label:detectedLabel };
+  var colors = {
+    'pro-pol':'var(--teal)', 'pro-est':'var(--amber)', 'pro-ctr':'var(--green)',
+    'pro-den':'var(--red)',  'pro-rep':'var(--teal)',   'pro-cor':'var(--ink2)', 'pro-misc':'var(--ink4)'
+  };
+  var col = colors[detectedId] || 'var(--teal)';
+
+  overlay.innerHTML =
+    '<div style="background:var(--white);border-radius:16px;box-shadow:var(--shadow2);width:100%;max-width:440px;padding:20px;animation:fadeUp .2s cubic-bezier(.16,1,.3,1);">'
+    + '<div style="font-size:11px;font-weight:700;color:var(--ink4);letter-spacing:.06em;margin-bottom:8px;">AUTO-DETECTED CATEGORY</div>'
+    + '<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">'
+    + '<div style="width:40px;height:40px;border-radius:10px;background:' + col + '18;display:flex;align-items:center;justify-content:center;flex-shrink:0;">'
+    + svgIcon('doc', 18, col) + '</div>'
+    + '<div>'
+    + '<div style="font-size:14px;font-weight:700;color:var(--ink);">' + detectedLabel + '</div>'
+    + '<div style="font-size:12px;color:var(--ink4);margin-top:2px;max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + filename + '</div>'
+    + '</div></div>'
+    + '<div style="font-size:13px;color:var(--ink3);margin-bottom:16px;">File this document under <strong>' + detectedLabel + '</strong>?</div>'
+    + '<div style="display:flex;gap:8px;">'
+    + '<button id="cat-confirm-yes" class="btn btn-primary" style="flex:1;">Yes, use this category</button>'
+    + '<button id="cat-confirm-no" class="btn btn-ghost" style="flex:1;">No, keep as Other</button>'
+    + '</div>'
+    + '</div>';
+
+  document.body.appendChild(overlay);
+
+  document.getElementById('cat-confirm-yes').onclick = function() {
+    overlay.remove();
+    onAccept({ id: detectedId, label: detectedLabel });
+  };
+  document.getElementById('cat-confirm-no').onclick = function() {
+    overlay.remove();
+    onReject();
+  };
+}
+
+// ── Auto-sort existing untagged client docs ───────────────────
+async function autoSortClientDocs() {
+  var f = PRO_FILES[PRO_ACTIVE_FILE];
+  if (!f) return;
+  var untagged = (f.claim.vault.docs || []).filter(function(d){ return !d.docTypeId; });
+  if (!untagged.length) { toast('All documents are already categorized'); return; }
+
+  toast('Analysing ' + untagged.length + ' document' + (untagged.length!==1?'s':'') + '...');
+
+  var results = [];
+  for (var i = 0; i < untagged.length; i++) {
+    var d = untagged[i];
+    var kw = classifyDocByKeyword(d.name);
+    var detected = kw;
+    if (!kw) {
+      var fd = d.storeKey ? FILE_STORE[d.storeKey] : null;
+      var snippet = fd ? extractTextSnippet(fd) : '';
+      detected = await classifyDocByAI(d.name, snippet);
+    }
+    if (detected && detected.id !== 'pro-misc') {
+      results.push({ doc: d, detected: detected });
+    }
+  }
+
+  if (!results.length) { toast('Could not auto-classify any documents — please categorize manually'); return; }
+
+  // Show single bulk confirmation
+  var existing = document.getElementById('cat-confirm-overlay');
+  if (existing) existing.remove();
+
+  var overlay = document.createElement('div');
+  overlay.id = 'cat-confirm-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(28,26,23,.4);z-index:9000;display:flex;align-items:center;justify-content:center;padding:20px;animation:fadeIn .15s ease;';
+
+  var rows = results.map(function(r) {
+    return '<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px;">'
+      + '<div style="flex:1;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + r.doc.name + '</div>'
+      + '<div style="flex-shrink:0;"><span style="background:var(--teal-l);color:var(--teal);border-radius:6px;padding:2px 8px;font-size:11.5px;font-weight:600;">' + r.detected.label + '</span></div>'
+      + '</div>';
+  }).join('');
+
+  overlay.innerHTML =
+    '<div style="background:var(--white);border-radius:16px;box-shadow:var(--shadow2);width:100%;max-width:500px;max-height:80vh;overflow-y:auto;animation:fadeUp .2s cubic-bezier(.16,1,.3,1);">'
+    + '<div style="padding:18px 20px 14px;border-bottom:1.5px solid var(--border);">'
+    + '<div style="font-size:15px;font-weight:700;color:var(--ink);">Auto-Sort Results</div>'
+    + '<div style="font-size:12.5px;color:var(--ink4);margin-top:3px);">Apply these categories to ' + results.length + ' document' + (results.length!==1?'s':'') + '?</div>'
+    + '</div>'
+    + '<div style="padding:12px 20px;">' + rows + '</div>'
+    + '<div style="display:flex;gap:8px;padding:14px 20px;border-top:1.5px solid var(--border);background:var(--paper);border-radius:0 0 16px 16px;">'
+    + '<button id="bulk-confirm-yes" class="btn btn-primary" style="flex:1;">Apply All</button>'
+    + '<button id="bulk-confirm-no" class="btn btn-ghost">Cancel</button>'
+    + '</div>'
+    + '</div>';
+
+  document.body.appendChild(overlay);
+
+  document.getElementById('bulk-confirm-yes').onclick = function() {
+    overlay.remove();
+    results.forEach(function(r) {
+      r.doc.docTypeId = r.detected.id;
+      r.doc.type      = r.detected.label;
+    });
+    saveProFileToDB(PRO_ACTIVE_FILE);
+    toast('\u2713 ' + results.length + ' document' + (results.length!==1?'s':'') + ' categorized');
+    renderProVaultView(f, f.claim);
+  };
+  document.getElementById('bulk-confirm-no').onclick = function() { overlay.remove(); };
+}
+
+// ── Main upload handler ───────────────────────────────────────
 function handleProFileUpload(input) {
   var f = PRO_FILES[PRO_ACTIVE_FILE];
   if(!f) return;
   var files = Array.from(input.files);
   if(!files.length) return;
-  var docType   = input.dataset.doctype   || 'Professional Upload';
-  var docTypeId = input.dataset.doctypeid || '';
-  var done = 0;
+  var explicitType   = input.dataset.doctype   || '';
+  var explicitTypeId = input.dataset.doctypeid || '';
+  input.value = '';
+
   files.forEach(function(file) {
-    readFile(file).then(function(data) {
+    readFile(file).then(async function(data) {
       var key = 'pro-upload-' + Date.now() + '-' + Math.random().toString(36).slice(2,7);
       FILE_STORE[key] = data;
       if(!f.claim.vault) f.claim.vault = { docs:[], photos:[] };
-      f.claim.vault.docs.push({
-        name:       file.name,
-        type:       docType,
-        docTypeId:  docTypeId,
-        uploadedBy: 'Professional',
-        uploaded:   new Date().toLocaleString(),
-        storeKey:   key
-      });
-      done++;
-      if(done === files.length) {
-        input.value = '';
+
+      // If uploaded via a specific zone (not "Other"), use that type directly
+      if (explicitTypeId && explicitTypeId !== 'pro-misc') {
+        var docEntry = {
+          name: file.name, type: explicitType, docTypeId: explicitTypeId,
+          uploadedBy: 'Professional', uploaded: new Date().toLocaleString(), storeKey: key
+        };
+        f.claim.vault.docs.push(docEntry);
         saveProFileToDB(PRO_ACTIVE_FILE);
-        toast('\u2713 ' + files.length + ' file' + (files.length!==1?'s':'') + ' uploaded');
+        toast('\u2713 ' + file.name + ' added to ' + explicitType);
         renderProVaultView(f, f.claim);
+        return;
+      }
+
+      // Otherwise: keyword match first, then AI fallback
+      var kw = classifyDocByKeyword(file.name);
+      var applyCategory = function(detected) {
+        var docEntry = {
+          name: file.name, type: detected.label, docTypeId: detected.id,
+          uploadedBy: 'Professional', uploaded: new Date().toLocaleString(), storeKey: key
+        };
+        f.claim.vault.docs.push(docEntry);
+        saveProFileToDB(PRO_ACTIVE_FILE);
+        renderProVaultView(f, f.claim);
+      };
+      var applyOther = function() {
+        f.claim.vault.docs.push({
+          name: file.name, type: 'Other Document', docTypeId: 'pro-misc',
+          uploadedBy: 'Professional', uploaded: new Date().toLocaleString(), storeKey: key
+        });
+        saveProFileToDB(PRO_ACTIVE_FILE);
+        renderProVaultView(f, f.claim);
+      };
+
+      if (kw) {
+        showCategoryConfirm(file.name, kw.id, kw.label, applyCategory, applyOther);
+      } else {
+        toast('Analysing ' + file.name + '...');
+        var snippet = extractTextSnippet(data);
+        var ai = await classifyDocByAI(file.name, snippet);
+        if (ai && ai.id !== 'pro-misc') {
+          showCategoryConfirm(file.name, ai.id, ai.label, applyCategory, applyOther);
+        } else {
+          applyOther();
+          toast('\u2713 ' + file.name + ' added as Other Document');
+        }
       }
     });
   });
