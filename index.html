@@ -5103,19 +5103,12 @@ function showForgotPassword() {
 // ── Ensure policyholder row exists for any auth user ─────────
 async function ensurePolicyholder(userId, email) {
   try {
-    var check = await SUPA.from('policyholders')
-      .select('id')
-      .eq('auth_id', userId)
-      .maybeSingle();
-
-    if (!check.data) {
-      await SUPA.from('policyholders').insert({
-        auth_id: userId,
-        email:   email || '',
-        name:    CLAIM.name || '',
-        firm_id: SESSION.firmId || null
-      });
-    }
+    await SUPA.from('policyholders').upsert({
+      auth_id: userId,
+      email:   email || '',
+      name:    CLAIM.name || '',
+      firm_id: SESSION.firmId || null
+    }, { onConflict: 'auth_id' });
   } catch(e) { console.warn('ensurePolicyholder failed:', e.message); }
 }
 
