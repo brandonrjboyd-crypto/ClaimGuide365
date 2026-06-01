@@ -5206,12 +5206,12 @@ async function saveClaimToDB() {
       .maybeSingle();
 
     if (!phRes.data) {
-      await SUPA.from('policyholders').insert({
+      await SUPA.from('policyholders').upsert({
         auth_id: SESSION.userId,
         email:   CLAIM.email || '',
         name:    CLAIM.name  || '',
         firm_id: SESSION.firmId || null
-      });
+      }, { onConflict: 'auth_id' });
       phRes = await SUPA.from('policyholders')
         .select('id')
         .eq('auth_id', SESSION.userId)
@@ -5322,12 +5322,12 @@ async function startClaim() {
         SESSION.userId = signUpRes.data.user.id;
 
         // Create policyholder row
-        await SUPA.from('policyholders').insert({
+        await SUPA.from('policyholders').upsert({
           auth_id:  signUpRes.data.user.id,
           email:    email,
           name:     name,
           firm_id:  SESSION.firmId || null
-        });
+        }, { onConflict: 'auth_id' });
 
         // Save claim to DB
         await saveClaimToDB();
