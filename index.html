@@ -6010,20 +6010,10 @@ async function startClaim() {
 
   if (btn) { btn.textContent = 'Create My Account & Start My Claim'; btn.disabled = false; }
 
-  // If Supabase is live and email confirmation is required, show confirm screen
-  // Otherwise (demo mode or already confirmed), go straight to app
-  var needsConfirm = SUPA && SUPA_URL !== 'YOUR_SUPABASE_URL'
-    && typeof CLAIM.email === 'string' && CLAIM.email.length > 0;
-
-  if (needsConfirm) {
-    _pendingConfirmEmail = CLAIM.email;
-    showConfirmScreen(CLAIM.email);
-  } else {
-    hideAllScreens();
-    document.getElementById('screen-app').classList.add('active');
-    renderDashboard();
-    toast('\u2713 Account created! Your claim is saved.');
-  }
+  hideAllScreens();
+  document.getElementById('screen-app').classList.add('active');
+  renderDashboard();
+  toast('\u2713 Account created! Your claim is saved.');
 };
 
 // ── Firm branding from URL slug ──────────────────────────────
