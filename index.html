@@ -307,7 +307,7 @@ label{font-size:13px;font-weight:600;color:var(--ink2);display:block;margin-bott
       Professional Login
     </button>
   </div>
-  <div class="welcome-card fade-up">
+  <div id="main-welcome-card" class="welcome-card fade-up">
     <!-- Firm branding banner — shown when accessed via /c/slug -->
     <div id="firm-banner" style="display:none;background:var(--teal);color:#fff;padding:10px 20px;border-radius:10px;margin-bottom:16px;text-align:center;font-size:13px;font-weight:600;"></div>
     <!-- Logo -->
@@ -3358,7 +3358,7 @@ function enterAsRole(role) {
 function _showRoleCard(icon, title, signinHTML, registerHTML) {
   hideAllScreens();
   document.getElementById('screen-welcome').classList.add('active');
-  var card = document.querySelector('.welcome-card');
+  var card = document.getElementById('main-welcome-card') || document.querySelector('.welcome-card');
   if (!card) return;
   if (!window._welcomeCardOriginal) window._welcomeCardOriginal = card.innerHTML;
 
@@ -3508,7 +3508,7 @@ async function proRegister() {
     }
 
     // Show success and redirect to pro portal
-    var card = document.querySelector('.welcome-card');
+    var card = document.getElementById('main-welcome-card') || document.querySelector('.welcome-card');
     if (card && window._welcomeCardOriginal) card.innerHTML = window._welcomeCardOriginal;
     hideAllScreens();
     document.getElementById('screen-pro').classList.add('active');
@@ -3608,7 +3608,7 @@ async function contractorSignIn() {
       SESSION.role   = 'contractor';
       APP_ROLE       = 'contractor';
     }
-    var card = document.querySelector('.welcome-card');
+    var card = document.getElementById('main-welcome-card') || document.querySelector('.welcome-card');
     if (card && window._welcomeCardOriginal) card.innerHTML = window._welcomeCardOriginal;
     hideAllScreens();
     document.getElementById('screen-contractor').classList.add('active');
@@ -3677,7 +3677,7 @@ async function contractorRegister() {
     }
 
     // Redirect straight to contractor portal
-    var card = document.querySelector('.welcome-card');
+    var card = document.getElementById('main-welcome-card') || document.querySelector('.welcome-card');
     if (card && window._welcomeCardOriginal) card.innerHTML = window._welcomeCardOriginal;
     hideAllScreens();
     document.getElementById('screen-contractor').classList.add('active');
@@ -3698,7 +3698,7 @@ function showCtrRegError(msg) {
 
 function cancelProLogin() {
   // Restore original welcome card
-  var card = document.querySelector('.welcome-card');
+  var card = document.getElementById('main-welcome-card') || document.querySelector('.welcome-card');
   if (card && window._welcomeCardOriginal) {
     card.innerHTML = window._welcomeCardOriginal;
   }
@@ -3758,7 +3758,7 @@ async function proSignIn() {
     }
 
     // Restore welcome card and go to pro screen
-    var card = document.querySelector('.welcome-card');
+    var card = document.getElementById('main-welcome-card') || document.querySelector('.welcome-card');
     if (card && window._welcomeCardOriginal) card.innerHTML = window._welcomeCardOriginal;
 
     hideAllScreens();
