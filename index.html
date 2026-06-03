@@ -157,9 +157,145 @@ label{font-size:13px;font-weight:600;color:var(--ink2);display:block;margin-bott
 <body>
 
 <!-- ══════════════════════════════════════════════════════
+     LANDING PAGE
+══════════════════════════════════════════════════════ -->
+<div id="screen-landing" class="screen active welcome-bg" style="align-items:flex-start;justify-content:flex-start;padding:0;overflow-y:auto;">
+
+  <!-- Nav -->
+  <nav style="position:sticky;top:0;z-index:100;background:rgba(250,247,242,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:14px 32px;display:flex;align-items:center;justify-content:space-between;">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div style="background:var(--teal);border-radius:10px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;">
+        <svg width="18" height="18" fill="none" stroke="#fff" stroke-width="2.5" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg>
+      </div>
+      <span style="font-family:'Lora',serif;font-size:17px;font-weight:700;color:var(--ink);">ClaimGuide <span style="color:var(--teal);">365</span></span>
+      <span style="background:var(--amber-l);color:var(--amber);border-radius:6px;padding:2px 8px;font-size:10.5px;font-weight:700;letter-spacing:.04em;">BETA</span>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button onclick="showLandingSignIn()" style="background:none;border:1.5px solid var(--border2);border-radius:9999px;padding:7px 18px;font-size:13px;font-weight:600;color:var(--ink3);cursor:pointer;transition:all .15s;" onmouseover="this.style.borderColor='var(--teal)';this.style.color='var(--teal)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--ink3)'">Sign In</button>
+      <button onclick="showLandingSignUp()" style="background:var(--teal);border:none;border-radius:9999px;padding:7px 18px;font-size:13px;font-weight:600;color:#fff;cursor:pointer;transition:background .15s;" onmouseover="this.style.background='#0b8075'" onmouseout="this.style.background='var(--teal)'">Start Free</button>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <div style="max-width:1000px;margin:0 auto;padding:64px 32px 48px;text-align:center;">
+    <div style="display:inline-flex;align-items:center;gap:8px;background:var(--teal-l);border:1px solid var(--teal-b);border-radius:9999px;padding:5px 14px;font-size:12px;font-weight:700;color:var(--teal);letter-spacing:.04em;margin-bottom:24px;">
+      &#x2713; FREE BETA — NO CREDIT CARD REQUIRED
+    </div>
+    <h1 style="font-family:'Lora',serif;font-size:clamp(32px,5vw,52px);font-weight:700;color:var(--ink);line-height:1.15;margin-bottom:20px;">
+      Your insurance claim,<br><span style="color:var(--teal);">fully in your corner.</span>
+    </h1>
+    <p style="font-size:clamp(15px,2vw,18px);color:var(--ink3);max-width:580px;margin:0 auto 36px;line-height:1.65;">
+      ClaimGuide 365 gives homeowners and insurance professionals the tools, guidance, and AI-powered advocacy to navigate property insurance claims with confidence — and get every dollar they're owed.
+    </p>
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+      <button onclick="showLandingSignUp()" style="background:var(--teal);border:none;border-radius:12px;padding:14px 32px;font-size:15px;font-weight:700;color:#fff;cursor:pointer;transition:all .15s;box-shadow:0 4px 16px rgba(13,148,136,.3);" onmouseover="this.style.background='#0b8075';this.style.transform='translateY(-1px)'" onmouseout="this.style.background='var(--teal)';this.style.transform='none'">
+        Start My Claim — Free
+      </button>
+      <button onclick="showProLanding()" style="background:var(--white);border:1.5px solid var(--border2);border-radius:12px;padding:14px 32px;font-size:15px;font-weight:600;color:var(--ink2);cursor:pointer;transition:all .15s;" onmouseover="this.style.borderColor='var(--amber)';this.style.color='var(--amber)'" onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--ink2)'">
+        I'm a Professional &#x2192;
+      </button>
+    </div>
+  </div>
+
+  <!-- Two-column value props -->
+  <div style="max-width:1000px;margin:0 auto;padding:0 32px 64px;display:grid;grid-template-columns:1fr 1fr;gap:24px;">
+
+    <!-- Homeowner column -->
+    <div style="background:var(--white);border-radius:16px;border:1.5px solid var(--border);padding:28px;box-shadow:var(--shadow);">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;">
+        <div style="background:var(--teal-l);border-radius:10px;width:40px;height:40px;display:flex;align-items:center;justify-content:center;">
+          <svg width="20" height="20" fill="none" stroke="var(--teal)" stroke-width="2" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg>
+        </div>
+        <div>
+          <div style="font-size:15px;font-weight:700;color:var(--ink);">For Homeowners</div>
+          <div style="font-size:12px;color:var(--ink4);">Fight back. Get paid fairly.</div>
+        </div>
+      </div>
+      <ul style="list-style:none;display:flex;flex-direction:column;gap:11px;">
+        <li style="display:flex;gap:10px;font-size:13.5px;color:var(--ink2);line-height:1.5;"><span style="color:var(--teal);font-weight:700;flex-shrink:0;">&#x2713;</span> AI advocate that knows every insurer tactic</li>
+        <li style="display:flex;gap:10px;font-size:13.5px;color:var(--ink2);line-height:1.5;"><span style="color:var(--teal);font-weight:700;flex-shrink:0;">&#x2713;</span> Organize your policy, photos, and estimates in one place</li>
+        <li style="display:flex;gap:10px;font-size:13.5px;color:var(--ink2);line-height:1.5;"><span style="color:var(--teal);font-weight:700;flex-shrink:0;">&#x2713;</span> Know your rights — plain English, no lawyers required</li>
+        <li style="display:flex;gap:10px;font-size:13.5px;color:var(--ink2);line-height:1.5;"><span style="color:var(--teal);font-weight:700;flex-shrink:0;">&#x2713;</span> Step-by-step guidance from FNOL to final settlement</li>
+        <li style="display:flex;gap:10px;font-size:13.5px;color:var(--ink2);line-height:1.5;"><span style="color:var(--teal);font-weight:700;flex-shrink:0;">&#x2713;</span> 24/7 — available the moment you need answers</li>
+      </ul>
+      <button onclick="showLandingSignUp()" style="width:100%;margin-top:20px;background:var(--teal);border:none;border-radius:10px;padding:12px;font-size:14px;font-weight:700;color:#fff;cursor:pointer;transition:background .15s;" onmouseover="this.style.background='#0b8075'" onmouseout="this.style.background='var(--teal)'">Start My Claim Free</button>
+    </div>
+
+    <!-- Professional column -->
+    <div style="background:var(--white);border-radius:16px;border:1.5px solid var(--amber-b);padding:28px;box-shadow:var(--shadow);">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;">
+        <div style="background:var(--amber-l);border-radius:10px;width:40px;height:40px;display:flex;align-items:center;justify-content:center;">
+          <svg width="20" height="20" fill="none" stroke="var(--amber)" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>
+        </div>
+        <div>
+          <div style="font-size:15px;font-weight:700;color:var(--ink);">For Professionals</div>
+          <div style="font-size:12px;color:var(--ink4);">Public adjusters, attorneys, contractors.</div>
+        </div>
+      </div>
+      <ul style="list-style:none;display:flex;flex-direction:column;gap:11px;">
+        <li style="display:flex;gap:10px;font-size:13.5px;color:var(--ink2);line-height:1.5;"><span style="color:var(--amber);font-weight:700;flex-shrink:0;">&#x2713;</span> Branded client portal with your logo</li>
+        <li style="display:flex;gap:10px;font-size:13.5px;color:var(--ink2);line-height:1.5;"><span style="color:var(--amber);font-weight:700;flex-shrink:0;">&#x2713;</span> Full document vault — upload and track all claim files</li>
+        <li style="display:flex;gap:10px;font-size:13.5px;color:var(--ink2);line-height:1.5;"><span style="color:var(--amber);font-weight:700;flex-shrink:0;">&#x2713;</span> AI-assisted claim analysis and estimate review</li>
+        <li style="display:flex;gap:10px;font-size:13.5px;color:var(--ink2);line-height:1.5;"><span style="color:var(--amber);font-weight:700;flex-shrink:0;">&#x2713;</span> Secure client messaging and notes</li>
+        <li style="display:flex;gap:10px;font-size:13.5px;color:var(--ink2);line-height:1.5;"><span style="color:var(--amber);font-weight:700;flex-shrink:0;">&#x2713;</span> Share a unique referral link with every client</li>
+      </ul>
+      <button onclick="showProLanding()" style="width:100%;margin-top:20px;background:var(--amber);border:none;border-radius:10px;padding:12px;font-size:14px;font-weight:700;color:#fff;cursor:pointer;transition:background .15s;" onmouseover="this.style.background='#b45309'" onmouseout="this.style.background='var(--amber)'">Professional Login</button>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div style="border-top:1px solid var(--border);padding:24px 32px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;background:var(--white);">
+    <div style="font-size:12px;color:var(--ink4);">&copy; 2025 ClaimGuide 365 &nbsp;·&nbsp; Brandon Boyd</div>
+    <div style="display:flex;gap:16px;">
+      <button onclick="showPage('terms')" style="background:none;border:none;font-size:12px;color:var(--ink4);cursor:pointer;text-decoration:underline;">Terms of Service</button>
+      <button onclick="showPage('privacy')" style="background:none;border:none;font-size:12px;color:var(--ink4);cursor:pointer;text-decoration:underline;">Privacy Policy</button>
+      <button onclick="showPage('disclaimer')" style="background:none;border:none;font-size:12px;color:var(--ink4);cursor:pointer;text-decoration:underline;">AI Disclaimer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     EMAIL CONFIRMATION SCREEN
+══════════════════════════════════════════════════════ -->
+<div id="screen-confirm" class="screen welcome-bg" style="align-items:center;justify-content:center;padding:24px;">
+  <div class="welcome-card fade-up" style="max-width:440px;text-align:center;">
+    <div style="font-size:56px;margin-bottom:16px;">&#x2709;&#xfe0f;</div>
+    <h2 style="font-family:'Lora',serif;font-size:22px;font-weight:700;color:var(--ink);margin-bottom:12px;">Check your inbox</h2>
+    <p style="font-size:14px;color:var(--ink3);line-height:1.65;margin-bottom:8px;">
+      We sent a confirmation link to <strong id="confirm-email-display" style="color:var(--ink);"></strong>.
+    </p>
+    <p style="font-size:13.5px;color:var(--ink3);line-height:1.65;margin-bottom:24px;">
+      Click the link in that email to activate your account, then come back here and sign in.
+    </p>
+    <div style="background:var(--teal-l);border:1px solid var(--teal-b);border-radius:10px;padding:14px;margin-bottom:24px;text-align:left;">
+      <div style="font-size:12px;font-weight:700;color:var(--teal);margin-bottom:6px;">&#x2139;&#xfe0f; Can't find the email?</div>
+      <ul style="font-size:12.5px;color:var(--ink3);line-height:1.8;padding-left:16px;">
+        <li>Check your spam or junk folder</li>
+        <li>Make sure you entered the right email</li>
+        <li>Allow a minute or two for delivery</li>
+      </ul>
+    </div>
+    <button onclick="resendConfirmEmail()" class="btn btn-ghost" style="width:100%;margin-bottom:10px;">Resend confirmation email</button>
+    <button onclick="showLandingSignIn()" style="background:none;border:none;font-size:13px;color:var(--ink4);cursor:pointer;">&#x2190; Back to sign in</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     LEGAL PAGES (Terms, Privacy, Disclaimer)
+══════════════════════════════════════════════════════ -->
+<div id="screen-legal" class="screen" style="align-items:flex-start;justify-content:flex-start;background:var(--cream);overflow-y:auto;">
+  <div style="max-width:760px;margin:0 auto;padding:48px 32px;">
+    <button onclick="backFromLegal()" style="display:flex;align-items:center;gap:6px;background:none;border:none;font-size:13px;color:var(--ink4);cursor:pointer;margin-bottom:28px;padding:0;">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="15,18 9,12 15,6"/></svg> Back
+    </button>
+    <div id="legal-content"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
      WELCOME / SETUP SCREEN
 ══════════════════════════════════════════════════════ -->
-<div id="screen-welcome" class="screen active welcome-bg" style="align-items:center;justify-content:center;padding:24px;">
+<div id="screen-welcome" class="screen welcome-bg" style="align-items:center;justify-content:center;padding:24px;">
   <!-- Professional + Contractor login links — top right -->
   <div style="position:absolute;top:18px;right:20px;display:flex;gap:8px;">
     <button onclick="enterAsRole('contractor')" style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.75);border:1px solid var(--border);border-radius:9999px;padding:6px 14px 6px 10px;font-size:12.5px;font-weight:600;color:var(--ink3);cursor:pointer;backdrop-filter:blur(6px);transition:all .15s;" onmouseover="this.style.background='var(--white)';this.style.color='var(--green)';this.style.borderColor='var(--green)'" onmouseout="this.style.background='rgba(255,255,255,.75)';this.style.color='var(--ink3)';this.style.borderColor='var(--border)'">
@@ -3009,6 +3145,211 @@ function generateContextualReply(msg) {
 }
 
 
+
+// ══════════════════════════════════════════════
+// LANDING PAGE NAVIGATION
+// ══════════════════════════════════════════════
+var _lastLegalSource = 'landing'; // track where to go back from legal
+
+function showLandingSignIn() {
+  hideAllScreens();
+  document.getElementById('screen-welcome').classList.add('active');
+  // Show sign-in tab
+  setTimeout(function(){ showSignIn(); }, 50);
+}
+
+function showLandingSignUp() {
+  hideAllScreens();
+  document.getElementById('screen-welcome').classList.add('active');
+}
+
+function showProLanding() {
+  enterAsRole('pro');
+}
+
+function showConfirmScreen(email) {
+  var el = document.getElementById('confirm-email-display');
+  if (el) el.textContent = email || 'your email address';
+  hideAllScreens();
+  document.getElementById('screen-confirm').classList.add('active');
+}
+
+var _pendingConfirmEmail = '';
+async function resendConfirmEmail() {
+  if (!SUPA || !_pendingConfirmEmail) {
+    toast('Please sign up again to resend the confirmation', '#D97706');
+    return;
+  }
+  try {
+    await SUPA.auth.resend({ type: 'signup', email: _pendingConfirmEmail });
+    toast('\u2713 Confirmation email resent — check your inbox');
+  } catch(e) {
+    toast('Could not resend — please try signing up again', '#D97706');
+  }
+}
+
+// ── Legal pages ───────────────────────────────
+var LEGAL_PAGES = {
+  terms: {
+    title: 'Terms of Service',
+    lastUpdated: 'June 2025',
+    content: \`
+<h2 style="font-family:'Lora',serif;font-size:26px;font-weight:700;color:var(--ink);margin-bottom:6px;">Terms of Service</h2>
+<p style="font-size:13px;color:var(--ink4);margin-bottom:32px;">Last updated: June 2025</p>
+
+<p style="font-size:14px;color:var(--ink2);line-height:1.75;margin-bottom:20px;">Welcome to ClaimGuide 365. By accessing or using this platform, you agree to be bound by these Terms of Service. Please read them carefully.</p>
+
+<h3 style="font-size:16px;font-weight:700;color:var(--ink);margin:28px 0 10px;">1. Description of Service</h3>
+<p style="font-size:14px;color:var(--ink2);line-height:1.75;margin-bottom:16px;">ClaimGuide 365 is an insurance claim management and guidance platform. It provides tools to help policyholders organize their insurance claims, access educational information about the claims process, and receive AI-generated guidance about insurance claim practices.</p>
+
+<h3 style="font-size:16px;font-weight:700;color:var(--ink);margin:28px 0 10px;">2. Not Legal or Adjusting Services</h3>
+<p style="font-size:14px;color:var(--ink2);line-height:1.75;margin-bottom:16px;">ClaimGuide 365 does not provide legal advice, legal representation, or licensed public adjusting services. The AI-generated content on this platform is educational and informational in nature. Nothing on this platform creates an attorney-client relationship or a licensed adjuster-client relationship. For legal advice or licensed public adjusting representation, you should consult a licensed professional in your jurisdiction.</p>
+
+<h3 style="font-size:16px;font-weight:700;color:var(--ink);margin:28px 0 10px;">3. User Responsibilities</h3>
+<p style="font-size:14px;color:var(--ink2);line-height:1.75;margin-bottom:8px;">By using ClaimGuide 365, you agree to:</p>
+<ul style="font-size:14px;color:var(--ink2);line-height:1.9;margin-bottom:16px;padding-left:24px;">
+  <li>Provide accurate and truthful information about your insurance claim</li>
+  <li>Not use the platform to commit or facilitate insurance fraud</li>
+  <li>Not misrepresent facts to your insurer or any third party</li>
+  <li>Use the platform only for lawful purposes</li>
+  <li>Keep your account credentials confidential</li>
+</ul>
+
+<h3 style="font-size:16px;font-weight:700;color:var(--ink);margin:28px 0 10px;">4. AI-Generated Content</h3>
+<p style="font-size:14px;color:var(--ink2);line-height:1.75;margin-bottom:16px;">The AI guidance provided on this platform is generated by automated systems and may not reflect the most current laws, regulations, or insurance practices in your jurisdiction. AI responses should be used as a starting point for your own research and should not replace the advice of qualified legal, insurance, or financial professionals. ClaimGuide 365 makes no warranty as to the accuracy, completeness, or fitness for purpose of any AI-generated content.</p>
+
+<h3 style="font-size:16px;font-weight:700;color:var(--ink);margin:28px 0 10px;">5. Beta Service</h3>
+<p style="font-size:14px;color:var(--ink2);line-height:1.75;margin-bottom:16px;">ClaimGuide 365 is currently offered as a beta service. Features may change, be added, or be removed without notice. The service is provided "as is" during the beta period, and we appreciate your feedback to help us improve.</p>
+
+<h3 style="font-size:16px;font-weight:700;color:var(--ink);margin:28px 0 10px;">6. Limitation of Liability</h3>
+<p style="font-size:14px;color:var(--ink2);line-height:1.75;margin-bottom:16px;">To the fullest extent permitted by law, ClaimGuide 365 and its operators shall not be liable for any indirect, incidental, special, consequential, or punitive damages arising from your use of the platform, including any claim outcomes or insurance settlements. Your use of the platform is at your own risk.</p>
+
+<h3 style="font-size:16px;font-weight:700;color:var(--ink);margin:28px 0 10px;">7. Changes to Terms</h3>
+<p style="font-size:14px;color:var(--ink2);line-height:1.75;margin-bottom:16px;">We may update these Terms of Service from time to time. Continued use of the platform after changes constitutes acceptance of the revised terms.</p>
+
+<h3 style="font-size:16px;font-weight:700;color:var(--ink);margin:28px 0 10px;">8. Contact</h3>
+<p style="font-size:14px;color:var(--ink2);line-height:1.75;">For questions about these Terms, please contact us through the platform.</p>
+\`
+  },
+  privacy: {
+    title: 'Privacy Policy',
+    content: \`
+<h2 style="font-family:'Lora',serif;font-size:26px;font-weight:700;color:var(--ink);margin-bottom:6px;">Privacy Policy</h2>
+<p style="font-size:13px;color:var(--ink4);margin-bottom:32px;">Last updated: June 2025</p>
+
+<p style="font-size:14px;color:var(--ink2);line-height:1.75;margin-bottom:20px;">Your privacy matters to us. This policy explains what information we collect, how we use it, and your rights regarding your data.</p>
+
+<h3 style="font-size:16px;font-weight:700;color:var(--ink);margin:28px 0 10px;">1. Information We Collect</h3>
+<ul style="font-size:14px;color:var(--ink2);line-height:1.9;margin-bottom:16px;padding-left:24px;">
+  <li><strong>Account information:</strong> Email address and password (stored securely via Supabase authentication)</li>
+  <li><strong>Claim information:</strong> Details you enter about your insurance claim, property, and insurer</li>
+  <li><strong>Documents:</strong> Files you upload to your claim vault, stored securely in your account</li>
+  <li><strong>Chat history:</strong> Conversations with the ClaimGuide AI assistant</li>
+  <li><strong>Usage data:</strong> Basic analytics about how you use the platform</li>
+</ul>
+
+<h3 style="font-size:16px;font-weight:700;color:var(--ink);margin:28px 0 10px;">2. How We Use Your Information</h3>
+<ul style="font-size:14px;color:var(--ink2);line-height:1.9;margin-bottom:16px;padding-left:24px;">
+  <li>To provide and improve the ClaimGuide 365 service</li>
+  <li>To generate personalized AI guidance based on your claim details</li>
+  <li>To send account-related communications (confirmation emails, important updates)</li>
+  <li>To ensure the security and integrity of your account</li>
+</ul>
+
+<h3 style="font-size:16px;font-weight:700;color:var(--ink);margin:28px 0 10px;">3. We Do Not Sell Your Data</h3>
+<p style="font-size:14px;color:var(--ink2);line-height:1.75;margin-bottom:16px;">We do not sell, rent, or share your personal information or claim data with third parties for marketing purposes. Your claim information is yours.</p>
+
+<h3 style="font-size:16px;font-weight:700;color:var(--ink);margin:28px 0 10px;">4. Third-Party Services</h3>
+<p style="font-size:14px;color:var(--ink2);line-height:1.75;margin-bottom:8px;">We use the following trusted third-party services to operate the platform:</p>
+<ul style="font-size:14px;color:var(--ink2);line-height:1.9;margin-bottom:16px;padding-left:24px;">
+  <li><strong>Supabase:</strong> Database and authentication (supabase.com)</li>
+  <li><strong>Anthropic Claude API:</strong> AI-generated guidance (anthropic.com)</li>
+  <li><strong>Resend:</strong> Transactional email delivery (resend.com)</li>
+  <li><strong>Vercel:</strong> Platform hosting (vercel.com)</li>
+</ul>
+<p style="font-size:14px;color:var(--ink2);line-height:1.75;margin-bottom:16px;">Each service has its own privacy policy. Your claim data may be processed by these services solely to provide the ClaimGuide 365 functionality.</p>
+
+<h3 style="font-size:16px;font-weight:700;color:var(--ink);margin:28px 0 10px;">5. Data Security</h3>
+<p style="font-size:14px;color:var(--ink2);line-height:1.75;margin-bottom:16px;">We use industry-standard security practices including encrypted data transmission (HTTPS), secure authentication, and access controls. However, no system is completely secure, and we cannot guarantee the absolute security of your information.</p>
+
+<h3 style="font-size:16px;font-weight:700;color:var(--ink);margin:28px 0 10px;">6. Your Rights</h3>
+<p style="font-size:14px;color:var(--ink2);line-height:1.75;margin-bottom:8px;">You have the right to:</p>
+<ul style="font-size:14px;color:var(--ink2);line-height:1.9;margin-bottom:16px;padding-left:24px;">
+  <li>Access the personal information we hold about you</li>
+  <li>Request correction of inaccurate data</li>
+  <li>Request deletion of your account and associated data</li>
+  <li>Export your claim data</li>
+</ul>
+<p style="font-size:14px;color:var(--ink2);line-height:1.75;margin-bottom:16px;">To exercise these rights, contact us through the platform.</p>
+
+<h3 style="font-size:16px;font-weight:700;color:var(--ink);margin:28px 0 10px;">7. Contact</h3>
+<p style="font-size:14px;color:var(--ink2);line-height:1.75;">For privacy questions or concerns, contact us through the ClaimGuide 365 platform.</p>
+\`
+  },
+  disclaimer: {
+    title: 'AI Disclaimer',
+    content: \`
+<h2 style="font-family:'Lora',serif;font-size:26px;font-weight:700;color:var(--ink);margin-bottom:6px;">AI & Service Disclaimer</h2>
+<p style="font-size:13px;color:var(--ink4);margin-bottom:32px;">Last updated: June 2025</p>
+
+<div style="background:var(--amber-l);border:1.5px solid var(--amber-b);border-radius:12px;padding:18px 20px;margin-bottom:28px;">
+  <div style="font-size:13px;font-weight:700;color:var(--amber);margin-bottom:8px;">&#x26a0;&#xfe0f; Important — Please Read</div>
+  <p style="font-size:13.5px;color:var(--ink2);line-height:1.7;">ClaimGuide 365 provides educational information and AI-generated guidance to help you understand the insurance claims process. It is not a substitute for professional legal, insurance, or financial advice.</p>
+</div>
+
+<h3 style="font-size:16px;font-weight:700;color:var(--ink);margin:28px 0 10px;">What ClaimGuide AI Is</h3>
+<p style="font-size:14px;color:var(--ink2);line-height:1.75;margin-bottom:16px;">ClaimGuide AI is an educational tool designed to help policyholders understand their rights, the claims process, and common insurance practices. It draws on general knowledge of insurance law, claim procedures, and industry standards to provide helpful information.</p>
+
+<h3 style="font-size:16px;font-weight:700;color:var(--ink);margin:28px 0 10px;">What ClaimGuide AI Is Not</h3>
+<ul style="font-size:14px;color:var(--ink2);line-height:1.9;margin-bottom:16px;padding-left:24px;">
+  <li><strong>Not legal advice:</strong> Nothing ClaimGuide AI says constitutes legal advice or creates an attorney-client relationship. For legal representation or advice on litigation, consult a licensed insurance attorney in your jurisdiction.</li>
+  <li><strong>Not public adjusting services:</strong> ClaimGuide AI does not act as a licensed public adjuster on your behalf. It does not negotiate with your insurer or prepare or present your claim as your representative. For licensed public adjusting representation, hire a licensed PA in your state or province.</li>
+  <li><strong>Not always accurate:</strong> AI systems can make mistakes. Insurance law varies significantly by state and province. Always verify important information with your actual policy documents and a qualified professional.</li>
+  <li><strong>Not a guarantee of outcomes:</strong> Information provided by ClaimGuide AI does not guarantee any particular claim outcome or settlement amount.</li>
+</ul>
+
+<h3 style="font-size:16px;font-weight:700;color:var(--ink);margin:28px 0 10px;">When to Seek Professional Help</h3>
+<ul style="font-size:14px;color:var(--ink2);line-height:1.9;margin-bottom:16px;padding-left:24px;">
+  <li>Your claim has been denied and you believe the denial is wrong</li>
+  <li>Your insurer is acting in bad faith</li>
+  <li>You are considering litigation against your insurer</li>
+  <li>Your claim involves complex coverage disputes or significant sums</li>
+  <li>You have received legal documents from your insurer or a third party</li>
+</ul>
+
+<h3 style="font-size:16px;font-weight:700;color:var(--ink);margin:28px 0 10px;">Resources</h3>
+<ul style="font-size:14px;color:var(--ink2);line-height:1.9;padding-left:24px;">
+  <li><strong>Licensed Public Adjusters:</strong> National Association of Public Insurance Adjusters (NAPIA) — napia.com</li>
+  <li><strong>Insurance Attorneys:</strong> Your state bar association's referral service</li>
+  <li><strong>Regulatory Complaints:</strong> Your state Department of Insurance or provincial regulator</li>
+</ul>
+\`
+  }
+};
+
+function showPage(page) {
+  var data = LEGAL_PAGES[page];
+  if (!data) return;
+  _lastLegalSource = document.querySelector('.screen.active') ? (document.querySelector('.screen.active').id || 'landing') : 'landing';
+  var el = document.getElementById('legal-content');
+  if (el) el.innerHTML = data.content;
+  hideAllScreens();
+  document.getElementById('screen-legal').classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+function backFromLegal() {
+  hideAllScreens();
+  var src = _lastLegalSource || 'screen-landing';
+  var target = src.startsWith('screen-') ? src : 'screen-landing';
+  var el = document.getElementById(target);
+  if (el) el.classList.add('active');
+  else document.getElementById('screen-landing').classList.add('active');
+}
+
+// ══════════════════════════════════════════════
+// RESEND WELCOME EMAIL (2. Fix)
+// ══════════════════════════════════════════════
 // ══════════════════════════════════════════════
 // ROLE ROUTING
 // ══════════════════════════════════════════════
@@ -3026,7 +3367,7 @@ function syncLogos() {
 }
 
 function hideAllScreens() {
-  ['screen-welcome','screen-app','screen-pro','screen-contractor'].forEach(function(id){
+  ['screen-landing','screen-welcome','screen-confirm','screen-legal','screen-app','screen-pro','screen-contractor'].forEach(function(id){
     var el = document.getElementById(id);
     if(el) el.classList.remove('active');
   });
@@ -5723,10 +6064,20 @@ async function startClaim() {
 
   if (btn) { btn.textContent = 'Create My Account & Start My Claim'; btn.disabled = false; }
 
-  hideAllScreens();
-  document.getElementById('screen-app').classList.add('active');
-  renderDashboard();
-  toast('\u2713 Account created! Your claim is saved.');
+  // If Supabase is live and email confirmation is required, show confirm screen
+  // Otherwise (demo mode or already confirmed), go straight to app
+  var needsConfirm = SUPA && SUPA_URL !== 'YOUR_SUPABASE_URL'
+    && typeof CLAIM.email === 'string' && CLAIM.email.length > 0;
+
+  if (needsConfirm) {
+    _pendingConfirmEmail = CLAIM.email;
+    showConfirmScreen(CLAIM.email);
+  } else {
+    hideAllScreens();
+    document.getElementById('screen-app').classList.add('active');
+    renderDashboard();
+    toast('\u2713 Account created! Your claim is saved.');
+  }
 };
 
 // ── Firm branding from URL slug ──────────────────────────────
@@ -6130,8 +6481,29 @@ async function signOut() {
     }
   }
 
-  // No session — show welcome screen as normal
+  // No session — show landing page
+  hideAllScreens();
+  document.getElementById('screen-landing').classList.add('active');
   syncLogos();
+
+  // Listen for auth state changes (handles email confirmation callback)
+  if (SUPA) {
+    SUPA.auth.onAuthStateChange(async function(event, session) {
+      if ((event === 'SIGNED_IN' || event === 'USER_UPDATED') && session) {
+        // User just confirmed their email and got signed in
+        var alreadyInApp = document.getElementById('screen-app').classList.contains('active');
+        if (alreadyInApp) return; // already in — ignore
+
+        SESSION.userId = session.user.id;
+        await ensurePolicyholder(session.user.id, session.user.email);
+        await loadClaimFromDB();
+        hideAllScreens();
+        document.getElementById('screen-app').classList.add('active');
+        renderDashboard();
+        toast('\u2713 Email confirmed! Welcome to ClaimGuide 365.');
+      }
+    });
+  }
 })();
 </script>
 </body>
