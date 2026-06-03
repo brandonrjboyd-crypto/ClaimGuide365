@@ -3345,8 +3345,9 @@ function enterAsRole(role) {
   APP_ROLE = role;
   syncLogos();
   hideAllScreens();
+  // Always make sure screen-welcome is visible so _showRoleCard can find .welcome-card
+  document.getElementById('screen-welcome').classList.add('active');
   if (role === 'pro') {
-    // Show pro login screen instead of jumping straight to dashboard
     showProLogin();
   } else if(role === 'contractor') {
     showContractorLogin();
