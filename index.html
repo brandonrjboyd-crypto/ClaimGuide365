@@ -3591,7 +3591,7 @@ async function contractorSignIn() {
   btn.textContent = 'Signing in…'; btn.disabled = true;
 
   try {
-    if (SUPA && SUPA_URL !== 'YOUR_SUPABASE_URL') {
+    if (SUPA && SUPA_URL !== 'https://uclbuybysluttevfilek.supabase.co') {
       var res = await SUPA.auth.signInWithPassword({ email, password });
       if (res.error) {
         var ctrMsg = res.error.message;
@@ -3646,7 +3646,7 @@ async function contractorRegister() {
   btn.textContent = 'Submitting…'; btn.disabled = true;
 
   try {
-    if (SUPA && SUPA_URL !== 'YOUR_SUPABASE_URL') {
+    if (SUPA && SUPA_URL !== 'https://uclbuybysluttevfilek.supabase.co') {
       var res = await SUPA.auth.signUp({
         email, password,
         options: { data: { name: first + ' ' + last, company, trade, account_type: 'contractor' } }
@@ -3716,7 +3716,7 @@ async function proSignIn() {
   btn.textContent = 'Signing in…'; btn.disabled = true;
 
   try {
-    if (SUPA && SUPA_URL !== 'YOUR_SUPABASE_URL') {
+    if (SUPA && SUPA_URL !== 'https://uclbuybysluttevfilek.supabase.co') {
       // ── Live mode ──
       var res = await SUPA.auth.signInWithPassword({ email, password });
       if (res.error) {
@@ -5953,7 +5953,7 @@ async function startClaim() {
   if (btn) { btn.textContent = 'Creating account…'; btn.disabled = true; }
 
   try {
-    if (SUPA && SUPA_URL !== 'YOUR_SUPABASE_URL') {
+    if (SUPA && SUPA_URL !== 'https://uclbuybysluttevfilek.supabase.co') {
       // ── Live mode: create Supabase auth user ──────────────
       var signUpRes = await SUPA.auth.signUp({
         email: email,
@@ -6033,7 +6033,7 @@ async function startClaim() {
 
   // If Supabase is live and email confirmation is required, show confirm screen
   // Otherwise (demo mode or already confirmed), go straight to app
-  var needsConfirm = SUPA && SUPA_URL !== 'YOUR_SUPABASE_URL'
+  var needsConfirm = SUPA && SUPA_URL !== 'https://uclbuybysluttevfilek.supabase.co'
     && typeof CLAIM.email === 'string' && CLAIM.email.length > 0;
 
   if (needsConfirm) {
@@ -6049,7 +6049,7 @@ async function startClaim() {
 
 // ── Firm branding from URL slug ──────────────────────────────
 async function loadFirmFromSlug() {
-  if (!SUPA || SUPA_URL === 'YOUR_SUPABASE_URL') return;
+  if (!SUPA || SUPA_URL === 'https://uclbuybysluttevfilek.supabase.co') return;
 
   // First check URL for slug
   var path  = window.location.pathname;
@@ -6096,7 +6096,7 @@ async function loadFirmFromSlug() {
 
 // ── Session restore on page load ─────────────────────────────
 async function restoreSession() {
-  if (!SUPA || SUPA_URL === 'YOUR_SUPABASE_URL') return false;
+  if (!SUPA || SUPA_URL === 'https://uclbuybysluttevfilek.supabase.co') return false;
   try {
     var res = await SUPA.auth.getSession();
     if (!res.data.session) return false;
@@ -6384,7 +6384,7 @@ async function signOut() {
   }
 
   // Initialise Supabase client if configured
-  if (window.supabase && SUPA_URL !== 'YOUR_SUPABASE_URL') {
+  if (window.supabase && SUPA_URL !== 'https://uclbuybysluttevfilek.supabase.co') {
     SUPA = window.supabase.createClient(SUPA_URL, SUPA_KEY);
   }
 
