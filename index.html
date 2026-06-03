@@ -6408,13 +6408,11 @@ async function signOut() {
       // Regular policyholder — restore their claim
       await ensurePolicyholder(session.user.id, session.user.email);
       await loadClaimFromDB();
-      if (CLAIM.name) {
-        hideAllScreens();
-        document.getElementById('screen-app').classList.add('active');
-        renderDashboard();
-        toast('\u2713 Welcome back, ' + CLAIM.name.split(' ')[0] + '!');
-        return;
-      }
+      hideAllScreens();
+      document.getElementById('screen-app').classList.add('active');
+      renderDashboard();
+      toast('\u2713 Welcome back, ' + (CLAIM.name ? CLAIM.name.split(' ')[0] : 'back') + '!');
+      return;
     }
   }
 
