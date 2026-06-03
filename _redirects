@@ -1,0 +1,6 @@
+# Netlify redirects
+# Mirror the /c/:slug rewrite from vercel.json so firm-branding URLs hit the SPA
+/c/*    /index.html   200
+
+# SPA fallback — any unknown path serves the app shell
+/*      /index.html   200
