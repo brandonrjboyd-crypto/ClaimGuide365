@@ -1297,10 +1297,11 @@ function renderEmergency() {
 function renderReport() {
   setPage('report', 'File Your Claim', 'Claim filing checklist — make sure everything is on record');
 
-  var html = '<div style="max-width:900px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:20px;align-items:start;">';
+  var html = '<div style="max-width:900px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start;">'
+        + '<style>.report-col{min-width:0;overflow:hidden;}</style>';
 
   // Left: filing checklist
-  html += '<div>'
+  html += '<div class="report-col">'
     + '<div class="card" style="margin-bottom:14px;">'
     + '<div style="font-size:14px;font-weight:700;color:var(--ink);margin-bottom:14px;">Filing Checklist</div>'
     + '<div id="report-checklist">'
@@ -1339,7 +1340,7 @@ function renderReport() {
     + '</div>';
 
   // Right: what to expect
-  html += '<div>'
+  html += '<div class="report-col">'
     + '<div class="card" style="margin-bottom:14px;">'
     + '<div style="font-size:14px;font-weight:700;color:var(--ink);margin-bottom:12px;">What Happens After You File</div>'
     + [
