@@ -1297,7 +1297,7 @@ function renderEmergency() {
 function renderReport() {
   setPage('report', 'File Your Claim', 'Claim filing checklist — make sure everything is on record');
 
-  var html = '<div style="max-width:760px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:20px;">';
+  var html = '<div style="max-width:900px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:20px;align-items:start;">';
 
   // Left: filing checklist
   html += '<div>'
@@ -1861,7 +1861,7 @@ function renderAutoDamage() {
   setPage('autodamage', 'Vehicle Damage', 'Document the incident, other party information, and all vehicle damage');
 
   var d = CLAIM.auto;
-  var html = '<div style="max-width:760px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:20px;">'
+  var html = '<div style="max-width:760px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:20px;align-items:start;">'
 
     // Left: incident + other driver
     + '<div class="space-y" style="display:flex;flex-direction:column;gap:14px;">'
@@ -1957,7 +1957,7 @@ function saveAutoDamage() {
 function renderPolicy() {
   setPage('policy','Policy Review','Upload your declarations page for a plain-English coverage summary');
   document.getElementById('page-body').innerHTML =
-    '<div style="max-width:760px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:20px;">'
+    '<div style="max-width:760px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:20px;align-items:start;">'
     +'<div>'
     +'<div class="card">'
     +'<div style="font-size:14px;font-weight:700;color:var(--ink);margin-bottom:14px;">Upload Your Policy</div>'
@@ -4169,7 +4169,7 @@ function renderProFileOverview(f, c) {
   var totalPaid  = (c.offers||[]).filter(function(o){return o.type==='payment';}).reduce(function(s,o){return s+Number(o.amount||0);},0);
 
   document.getElementById('pro-body').innerHTML =
-    '<div style="max-width:900px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:20px;">'
+    '<div style="max-width:900px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:20px;align-items:start;">'
 
     // Left: progress + steps
     +'<div>'
@@ -6309,7 +6309,7 @@ function renderProFileOverview(f, c) {
   var totalPaid  = (c.offers||[]).filter(function(o){return o.type==='payment';}).reduce(function(s,o){return s+Number(o.amount||0);},0);
 
   document.getElementById('pro-body').innerHTML =
-    '<div style="max-width:900px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:20px;">'
+    '<div style="max-width:900px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:20px;align-items:start;">'
 
     // Left: progress + steps
     +'<div>'
@@ -7540,7 +7540,7 @@ function renderCtrProfile() {
 
   var c = ACTIVE_CONTRACTOR;
   document.getElementById('ctr-body').innerHTML =
-    '<div style="max-width:760px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:20px;">'
+    '<div style="max-width:760px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:20px;align-items:start;">'
     +'<div class="card">'
     +'<div style="font-size:14px;font-weight:700;color:var(--ink);margin-bottom:14px;">Company Details</div>'
     +'<div style="display:flex;flex-direction:column;gap:10px;">'
