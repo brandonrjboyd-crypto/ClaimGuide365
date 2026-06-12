@@ -1297,11 +1297,11 @@ function renderEmergency() {
 function renderReport() {
   setPage('report', 'File Your Claim', 'Claim filing checklist — make sure everything is on record');
 
-  var html = '<style>.report-col{min-width:0;width:100%;}.report-col .card{overflow:hidden;word-wrap:break-word;}</style>'
-       + '<div style="max-width:900px;margin:0 auto;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px;align-items:start;">';
+  var html = '<style>.report-col{min-width:0;width:100%;overflow:hidden;}.report-col label{display:flex!important;gap:8px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--border);cursor:pointer;font-size:13px;color:var(--462);line-height:1.5;}.report-col label span{flex:1;min-width:0;white-space:normal;overflow-wrap:break-word;}</style>'
+       + '<div style="max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:20px;">';
 
   // Left: filing checklist
-  html += '<div class="report-col">'
+  html += '<div>'
     + '<div class="card" style="margin-bottom:14px;">'
     + '<div style="font-size:14px;font-weight:700;color:var(--ink);margin-bottom:14px;">Filing Checklist</div>'
     + '<div id="report-checklist">'
@@ -1340,7 +1340,7 @@ function renderReport() {
     + '</div>';
 
   // Right: what to expect
-  html += '<div class="report-col">'
+  html += '<div>'
     + '<div class="card" style="margin-bottom:14px;">'
     + '<div style="font-size:14px;font-weight:700;color:var(--ink);margin-bottom:12px;">What Happens After You File</div>'
     + [
