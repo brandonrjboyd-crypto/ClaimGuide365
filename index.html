@@ -8448,37 +8448,8 @@ async function signOut() {
     var session = sessionRes.data.session;
 
     if (session) {
+      // Store userId for later use when user manually signs in
       SESSION.userId = session.user.id;
-
-      // Check if this is a pro user first
-      var proCheck = await SUPA.from('pro_users')
-        .select('id, firm_id, name, role')
-        .eq('auth_id', session.user.id)
-        .maybeSingle();
-
-      if (proCheck.data) {
-        // Pro user — go straight to pro portal
-        SESSION.firmId = proCheck.data.firm_id;
-        SESSION.role   = 'pro';
-        APP_ROLE       = 'pro';
-        await loadProFilesFromDB(proCheck.data.firm_id);
-        hideAllScreens();
-        document.getElementById('screen-pro').classList.add('active');
-        renderProList();
-        toast('\u2713 Welcome back, ' + (proCheck.data.name || session.user.email) + '!');
-        return;
-      }
-
-
-
-      // Regular policyholder — restore their claim
-      await ensurePolicyholder(session.user.id, session.user.email);
-      await loadClaimFromDB();
-      hideAllScreens();
-      document.getElementById('screen-app').classList.add('active');
-      renderDashboard();
-      toast('\u2713 Welcome back, ' + (CLAIM.name ? CLAIM.name.split(' ')[0] : 'back') + '!');
-      return;
     }
   }
 
