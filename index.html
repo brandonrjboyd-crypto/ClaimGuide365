@@ -1297,8 +1297,8 @@ function renderEmergency() {
 function renderReport() {
   setPage('report', 'File Your Claim', 'Claim filing checklist — make sure everything is on record');
 
-  var html = '<style>.report-col{min-width:0;width:100%;overflow:hidden;}.report-col label{display:flex!important;gap:8px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--border);cursor:pointer;font-size:13px;color:var(--462);line-height:1.5;}.report-col label span{flex:1;min-width:0;white-space:normal;overflow-wrap:break-word;}</style>'
-       + '<div style="max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:20px;">';
+  var html = ''
+       + '<div style="max-width:760px;margin:0 auto;">';
 
   // Left: filing checklist
   html += '<div>'
@@ -1318,9 +1318,10 @@ function renderReport() {
         { id:'rc10',text:'Sent written follow-up email confirming call details', note:'' },
       ].map(function(item) {
         var checked = (CLAIM.reportChecklist || {})[item.id];
-        return '<label style="display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--border);cursor:pointer;font-size:13px;color:var(--ink2);line-height:1.5;min-width:0;">'
-          + '<input type="checkbox" '+(checked?'checked':'')+' style="margin-top:2px;flex-shrink:0;" onchange="toggleReportCheck(\''+item.id+'\',this.checked)">'
-          + '<span style="flex:1;">' + item.text + '</span></label>';
+        return '<div style="display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--border);">'
+          + '<input type="checkbox" '+(checked?'checked':'')+' style="margin-top:3px;flex-shrink:0;" onchange="toggleReportCheck(\''+item.id+'\',this.checked)">'
+          + '<span style="font-size:13px;color:var(--ink2);line-height:1.5;">' + item.text + '</span>'
+          + '</div>';
       }).join('')
     + '</div>'
     + '<div style="margin-top:14px;">'
