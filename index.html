@@ -616,15 +616,12 @@ var API_HEADERS = {
 var _apiBlocked = null;
 
 async function callAPI(body) {
-  // If we already know API is blocked, skip immediately
-  if (_apiBlocked === true) return null;
   try {
-    var r = await fetch('https://api.anthropic.com/v1/messages', {
+    var r = await fetch('/api/chat', {
       method: 'POST',
-      headers: API_HEADERS,
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body)
     });
-    _apiBlocked = false; // API reachable
     if (!r.ok) {
       var err = await r.json().catch(function(){ return {}; });
       console.error('API error:', r.status, err);
@@ -633,11 +630,7 @@ async function callAPI(body) {
     var d = await r.json();
     return (d.content && d.content[0]) ? d.content[0].text : null;
   } catch(e) {
-    // TypeError: Failed to fetch = CORS block or network unreachable
-    if (e.name === 'TypeError' || e.message.indexOf('fetch') >= 0 || e.message.indexOf('CORS') >= 0) {
-      console.warn('API blocked (CORS/network) — switching to demo mode');
-      _apiBlocked = true;
-    }
+    console.error('callAPI error:', e.message);
     return null;
   }
 }
