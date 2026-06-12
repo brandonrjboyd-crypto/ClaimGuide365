@@ -298,10 +298,7 @@ label{font-size:13px;font-weight:600;color:var(--ink2);display:block;margin-bott
 <div id="screen-welcome" class="screen welcome-bg" style="align-items:center;justify-content:center;padding:24px;">
   <!-- Professional + Contractor login links — top right -->
   <div style="position:absolute;top:18px;right:20px;display:flex;gap:8px;">
-    <button onclick="enterAsRole('contractor')" style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.75);border:1px solid var(--border);border-radius:9999px;padding:6px 14px 6px 10px;font-size:12.5px;font-weight:600;color:var(--ink3);cursor:pointer;backdrop-filter:blur(6px);transition:all .15s;" onmouseover="this.style.background='var(--white)';this.style.color='var(--green)';this.style.borderColor='var(--green)'" onmouseout="this.style.background='rgba(255,255,255,.75)';this.style.color='var(--ink3)';this.style.borderColor='var(--border)'">
-      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
-      Contractor Login
-    </button>
+    
     <button onclick="enterAsRole('pro')" style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.75);border:1px solid var(--border);border-radius:9999px;padding:6px 14px 6px 10px;font-size:12.5px;font-weight:600;color:var(--ink3);cursor:pointer;backdrop-filter:blur(6px);transition:all .15s;" onmouseover="this.style.background='var(--white)';this.style.color='var(--amber)';this.style.borderColor='var(--amber-b)'" onmouseout="this.style.background='rgba(255,255,255,.75)';this.style.color='var(--ink3)';this.style.borderColor='var(--border)'">
       <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>
       Professional Login
@@ -474,45 +471,6 @@ label{font-size:13px;font-weight:600;color:var(--ink2);display:block;margin-bott
 <!-- ══════════════════════════════════════════════════════
      CONTRACTOR SCREEN═══════
      CONTRACTOR SCREEN
-══════════════════════════════════════════════════════ -->
-<div id="screen-contractor" class="screen">
-  <div style="display:flex;height:100vh;overflow:hidden;">
-
-    <!-- Contractor Sidebar -->
-    <div id="ctr-sidebar" style="width:240px;min-width:240px;background:#0F1A0F;display:flex;flex-direction:column;overflow-y:auto;">
-      <div style="padding:16px 14px 12px;border-bottom:1px solid rgba(255,255,255,.1);">
-        <div style="background:rgba(255,255,255,.08);border-radius:10px;padding:8px 12px;margin-bottom:8px;">
-          <img src="" id="ctr-logo" style="height:26px;width:auto;display:block;" alt="ClaimGuide 365">
-        </div>
-        <div style="font-size:10.5px;color:#4a7a4a;margin-top:4px;">Contractor Portal</div>
-      </div>
-      <div style="padding:10px 10px;border-bottom:1px solid rgba(255,255,255,.08);">
-        <div style="font-size:13px;font-weight:600;color:#fff;padding:2px 6px;" id="ctr-company-name">Your Company</div>
-        <div style="font-size:11.5px;color:#4a7a4a;padding:0 6px 4px;" id="ctr-tier-label">—</div>
-      </div>
-      <nav style="padding:10px;flex:1;" id="ctr-nav"></nav>
-      <div style="padding:12px;border-top:1px solid rgba(255,255,255,.08);">
-        <button onclick="backToWelcome()" style="width:100%;background:rgba(255,255,255,.06);border:none;color:#4a7a4a;font-size:12px;padding:8px;border-radius:7px;cursor:pointer;">← Exit Portal</button>
-      </div>
-    </div>
-
-    <!-- Contractor Main -->
-    <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--cream);">
-      <div id="ctr-topbar" style="background:var(--white);border-bottom:1.5px solid var(--border);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;min-height:64px;">
-        <div>
-          <h1 style="font-size:17px;font-weight:700;color:var(--ink);font-family:'Lora',serif;" id="ctr-page-title">Dashboard</h1>
-          <p style="font-size:12.5px;color:var(--ink4);margin-top:1px;" id="ctr-page-sub"></p>
-        </div>
-        <div id="ctr-page-actions"></div>
-      </div>
-      <div id="ctr-body" style="flex:1;overflow-y:auto;padding:24px;"></div>
-    </div>
-
-  </div>
-</div>
-
-<!-- ══════════════════════════════════════════════════════
-     PRO SCREEN (PA / Attorney)
 ══════════════════════════════════════════════════════ -->
 <div id="screen-pro" class="screen">
   <div id="pro-layout" style="display:flex;height:100vh;overflow:hidden;">
@@ -3334,7 +3292,7 @@ function syncLogos() {
 }
 
 function hideAllScreens() {
-  ['screen-landing','screen-welcome','screen-confirm','screen-legal','screen-app','screen-pro','screen-contractor'].forEach(function(id){
+  ['screen-landing','screen-welcome','screen-confirm','screen-legal','screen-app','screen-pro'].forEach(function(id){
     var el = document.getElementById(id);
     if(el) el.classList.remove('active');
   });
@@ -3349,8 +3307,6 @@ function enterAsRole(role) {
   document.getElementById('screen-welcome').classList.add('active');
   if (role === 'pro') {
     showProLogin();
-  } else if(role === 'contractor') {
-    showContractorLogin();
   }
 }
 
@@ -3529,97 +3485,125 @@ function showProRegError(msg) {
 }
 
 // ── Contractor login / register ──────────────────────────────
-function showContractorLogin() {
+function showProLogin() {
   var signinHTML = `
     <div style="display:flex;flex-direction:column;gap:12px;">
-      <div><label>Email Address</label><input type="email" id="ctr-login-email" placeholder="you@company.com" /></div>
-      <div><label>Password</label><input type="password" id="ctr-login-password" placeholder="Your password" onkeydown="if(event.key==='Enter')contractorSignIn()" /></div>
+      <div><label>Email Address</label><input type="email" id="pro-login-email" placeholder="you@firm.com" /></div>
+      <div><label>Password</label><input type="password" id="pro-login-password" placeholder="Your password" onkeydown="if(event.key==='Enter')proSignIn()" /></div>
     </div>
-    <div id="ctr-login-error" style="display:none;background:var(--amber-l);border:1px solid var(--amber-b);border-radius:8px;padding:10px 14px;font-size:12.5px;color:#92400E;margin-top:12px;"></div>
-    <button onclick="contractorSignIn()" class="btn btn-primary btn-lg" style="width:100%;margin-top:16px;background:var(--green);" id="ctr-login-btn">
-      Sign In to Contractor Portal
+    <div id="pro-login-error" style="display:none;background:var(--amber-l);border:1px solid var(--amber-b);border-radius:8px;padding:10px 14px;font-size:12.5px;color:#92400E;margin-top:12px;"></div>
+    <button onclick="proSignIn()" class="btn btn-primary btn-lg" style="width:100%;margin-top:16px;" id="pro-login-btn">
+      Sign In to Professional Portal
     </button>`;
 
   var registerHTML = `
-    <p style="font-size:13px;color:var(--ink3);margin-bottom:14px;line-height:1.6;">Join the ClaimGuide 365 contractor network. Get matched with policyholders in your service area.</p>
+    <p style="font-size:13px;color:var(--ink3);margin-bottom:14px;line-height:1.6;">Create your professional profile. Once submitted your account will be activated within 24 hours.</p>
     <div style="display:flex;flex-direction:column;gap:11px;">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-        <div><label>First Name</label><input id="ctr-reg-first" placeholder="John" /></div>
-        <div><label>Last Name</label><input id="ctr-reg-last" placeholder="Smith" /></div>
+        <div><label>First Name</label><input id="pro-reg-first" placeholder="Jane" /></div>
+        <div><label>Last Name</label><input id="pro-reg-last" placeholder="Smith" /></div>
       </div>
-      <div><label>Company Name</label><input id="ctr-reg-company" placeholder="Smith Restoration Inc." /></div>
-      <div><label>Email Address</label><input type="email" id="ctr-reg-email" placeholder="you@company.com" /></div>
-      <div><label>Password</label><input type="password" id="ctr-reg-password" placeholder="Min. 8 characters" /></div>
-      <div><label>Phone Number</label><input id="ctr-reg-phone" placeholder="(555) 555-5555" /></div>
-      <div><label>Trade / Specialty</label>
-        <select id="ctr-reg-trade">
-          <option>General Contractor</option>
-          <option>Roofing</option>
-          <option>Water Damage Restoration</option>
-          <option>Fire & Smoke Restoration</option>
-          <option>Mold Remediation</option>
-          <option>Flooring</option>
-          <option>HVAC</option>
-          <option>Auto Body / Collision</option>
-          <option>Other</option>
+      <div><label>Email Address</label><input type="email" id="pro-reg-email" placeholder="you@firm.com" /></div>
+      <div><label>Password</label><input type="password" id="pro-reg-password" placeholder="Min. 8 characters" /></div>
+      <div><label>Firm / Company Name</label><input id="pro-reg-firm" placeholder="Smith & Associates PA" /></div>
+      <div><label>Role</label>
+        <select id="pro-reg-role">
+          <option value="adjuster">Public Adjuster</option>
+          <option value="attorney">Insurance Attorney</option>
+          <option value="consultant">Claims Consultant</option>
         </select>
       </div>
-      <div><label>City & State / Province</label><input id="ctr-reg-location" placeholder="e.g. Tampa, Florida" /></div>
-      <div><label>Service Radius</label>
-        <select id="ctr-reg-radius">
-          <option value="30">Local — up to 30 km / 20 mi</option>
-          <option value="100">Regional — up to 100 km / 60 mi</option>
-          <option value="300">Provincial / State — up to 300 km</option>
-          <option value="9999">National — unlimited</option>
-        </select>
-      </div>
-      <div><label>Licence Number (optional)</label><input id="ctr-reg-licence" placeholder="Optional" /></div>
+      <div><label>Phone Number</label><input id="pro-reg-phone" placeholder="(555) 555-5555" /></div>
+      <div><label>State / Province</label><input id="pro-reg-state" placeholder="e.g. Florida, Ontario" /></div>
     </div>
-    <div id="ctr-reg-error" style="display:none;background:var(--amber-l);border:1px solid var(--amber-b);border-radius:8px;padding:10px 14px;font-size:12.5px;color:#92400E;margin-top:12px;"></div>
-    <button onclick="contractorRegister()" class="btn btn-primary btn-lg" style="width:100%;margin-top:16px;background:var(--green);" id="ctr-reg-btn">
+    <div id="pro-reg-error" style="display:none;background:var(--amber-l);border:1px solid var(--amber-b);border-radius:8px;padding:10px 14px;font-size:12.5px;color:#92400E;margin-top:12px;"></div>
+    <button onclick="proRegister()" class="btn btn-primary btn-lg" style="width:100%;margin-top:16px;" id="pro-reg-btn">
       Create My Profile
     </button>`;
 
-  _showRoleCard('🔧', 'Contractor Portal', signinHTML, registerHTML);
+  _showRoleCard('⚖️', 'Professional Portal', signinHTML, registerHTML);
 }
 
-async function contractorSignIn() {
-  var email    = (document.getElementById('ctr-login-email')   ||{}).value.trim();
-  var password = (document.getElementById('ctr-login-password')||{}).value;
-  var btn      = document.getElementById('ctr-login-btn');
+async function proRegister() {
+  var first    = (document.getElementById('pro-reg-first')   ||{}).value.trim();
+  var last     = (document.getElementById('pro-reg-last')    ||{}).value.trim();
+  var email    = (document.getElementById('pro-reg-email')   ||{}).value.trim();
+  var password = (document.getElementById('pro-reg-password')||{}).value;
+  var firm     = (document.getElementById('pro-reg-firm')    ||{}).value.trim();
+  var role     = (document.getElementById('pro-reg-role')    ||{}).value;
+  var phone    = (document.getElementById('pro-reg-phone')   ||{}).value.trim();
+  var state    = (document.getElementById('pro-reg-state')   ||{}).value.trim();
+  var btn      = document.getElementById('pro-reg-btn');
 
-  if (!email || !password) { showCtrLoginError('Please enter your email and password.'); return; }
-  btn.textContent = 'Signing in…'; btn.disabled = true;
+  if (!first || !last)  { showProRegError('Please enter your full name.'); return; }
+  if (!email || email.indexOf('@') < 0) { showProRegError('Please enter a valid email.'); return; }
+  if (!password || password.length < 8) { showProRegError('Password must be at least 8 characters.'); return; }
+  if (!firm)  { showProRegError('Please enter your firm or company name.'); return; }
+
+  btn.textContent = 'Submitting…'; btn.disabled = true;
 
   try {
     if (SUPA && SUPA_URL !== 'YOUR_SUPABASE_URL') {
-      var res = await SUPA.auth.signInWithPassword({ email, password });
-      if (res.error) {
-        var ctrMsg = res.error.message;
-        if (ctrMsg.toLowerCase().indexOf('email not confirmed') !== -1) {
-          ctrMsg = 'Please confirm your email first — check your inbox for a confirmation link.';
-        }
-        showCtrLoginError(ctrMsg);
-        btn.textContent = 'Sign In to Contractor Portal';
-        btn.disabled = false;
-        return;
-      }
-      SESSION.userId = res.data.user.id;
-      SESSION.role   = 'contractor';
-      APP_ROLE       = 'contractor';
+      var res = await SUPA.auth.signUp({
+        email, password,
+        options: { data: { name: first + ' ' + last, firm, role, phone, state, account_type: 'pro' } }
+      });
+      if (res.error) { showProRegError(res.error.message); btn.textContent = 'Create My Profile'; btn.disabled = false; return; }
+      if (!res.data.user) { showProRegError('This email may already be registered. Try signing in instead.'); btn.textContent = 'Create My Profile'; btn.disabled = false; return; }
+
+      var userId = res.data.user.id;
+
+      // Auto-confirm email so they can sign in immediately
+      // (handled by Supabase auth settings — if email confirm is off this works instantly)
+
+      // Create firm for this pro
+      var firmSlug = firm.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+      var firmRes = await SUPA.from('firms').insert({
+        name:  firm,
+        slug:  firmSlug + '-' + userId.substring(0,6),
+        email: email,
+        plan:  'solo'
+      }).select('id').single();
+
+      var firmId = firmRes.data ? firmRes.data.id : null;
+
+      // Create pro_users row immediately — auto approved
+      await SUPA.from('pro_users').insert({
+        auth_id: userId,
+        firm_id: firmId,
+        email:   email,
+        name:    first + ' ' + last,
+        role:    role
+      });
+
+      SESSION.userId = userId;
+      SESSION.firmId = firmId;
+      SESSION.role   = 'pro';
+      APP_ROLE       = 'pro';
     }
+
+    // Show success and redirect to pro portal
     var card = document.getElementById('main-welcome-card') || document.querySelector('.welcome-card');
     if (card && window._welcomeCardOriginal) card.innerHTML = window._welcomeCardOriginal;
     hideAllScreens();
-    document.getElementById('screen-contractor').classList.add('active');
-    initContractorPortal();
-    toast('\u2713 Welcome back!');
+    document.getElementById('screen-pro').classList.add('active');
+    PRO_FILES = [];
+    renderProList();
+    toast('\u2713 Welcome to ClaimGuide 365, ' + first + '!');
+
   } catch(e) {
-    showCtrLoginError('Something went wrong — please try again.');
-    btn.textContent = 'Sign In to Contractor Portal'; btn.disabled = false;
+    console.error('proRegister error:', e);
+    showProRegError('Something went wrong — please try again.');
+    btn.textContent = 'Create My Profile'; btn.disabled = false;
   }
 }
 
+function showProRegError(msg) {
+  var el = document.getElementById('pro-reg-error');
+  if (el) { el.style.display = 'block'; el.textContent = msg; }
+}
+
+// ── Contractor login / register ──────────────────────────────
 function showCtrLoginError(msg) {
   var el = document.getElementById('ctr-login-error');
   if (el) { el.style.display = 'block'; el.textContent = msg; }
@@ -3680,8 +3664,6 @@ async function contractorRegister() {
     var card = document.getElementById('main-welcome-card') || document.querySelector('.welcome-card');
     if (card && window._welcomeCardOriginal) card.innerHTML = window._welcomeCardOriginal;
     hideAllScreens();
-    document.getElementById('screen-contractor').classList.add('active');
-    initContractorPortal();
     toast('\u2713 Welcome to ClaimGuide 365, ' + first + '!');
 
   } catch(e) {
@@ -5262,49 +5244,2148 @@ function showAddContractorForm() {
 // CONTRACTOR PORTAL — INIT
 // ══════════════════════════════════════════════
 
-function initContractorPortal() {
-  // In demo mode, load the first contractor
-  if(!ACTIVE_CONTRACTOR) ACTIVE_CONTRACTOR = CONTRACTOR_NETWORK[0];
+// ══════════════════════════════════════════════
+// LANDING PAGE NAVIGATION
+// ══════════════════════════════════════════════
+var _lastLegalSource = 'landing'; // track where to go back from legal
 
-  // Sync logo
+function showLandingSignIn() {
+  hideAllScreens();
+  document.getElementById('screen-welcome').classList.add('active');
+  // Show sign-in tab
+  setTimeout(function(){ showSignIn(); }, 50);
+}
+
+function showLandingSignUp() {
+  hideAllScreens();
+  document.getElementById('screen-welcome').classList.add('active');
+}
+
+function showProLanding() {
+  enterAsRole('pro');
+}
+
+function showConfirmScreen(email) {
+  var el = document.getElementById('confirm-email-display');
+  if (el) el.textContent = email || 'your email address';
+  hideAllScreens();
+  document.getElementById('screen-confirm').classList.add('active');
+}
+
+var _pendingConfirmEmail = '';
+async function resendConfirmEmail() {
+  if (!SUPA || !_pendingConfirmEmail) {
+    toast('Please sign up again to resend the confirmation', '#D97706');
+    return;
+  }
+  try {
+    await SUPA.auth.resend({ type: 'signup', email: _pendingConfirmEmail });
+    toast('\u2713 Confirmation email resent — check your inbox');
+  } catch(e) {
+    toast('Could not resend — please try signing up again', '#D97706');
+  }
+}
+
+// ── Legal pages ───────────────────────────────
+var LEGAL_PAGES = {
+  terms: {
+    title: 'Terms of Service',
+    content: [
+      '<h2 style="font-family:\'Lora\',serif;font-size:26px;font-weight:700;color:var(--ink);margin-bottom:6px;">Terms of Service</h2>',
+      '<p style="font-size:13px;color:var(--ink4);margin-bottom:32px;">Last updated: June 2025</p>',
+      '<p style="font-size:14px;color:var(--ink2);line-height:1.75;margin-bottom:20px;">Welcome to ClaimGuide 365. By accessing or using this platform, you agree to be bound by these Terms of Service.</p>',
+      '<h3 style="font-size:16px;font-weight:700;color:var(--ink);margin:28px 0 10px;">1. Description of Service</h3>',
+      '<p style="font-size:14px;color:var(--ink2);line-height:1.75;margin-bottom:16px;">ClaimGuide 365 is an insurance claim management and guidance platform. It provides tools to help policyholders organize their insurance claims, access educational information about the claims process, and receive AI-generated guidance about insurance claim practices.</p>',
+      '<h3 style="font-size:16px;font-weight:700;color:var(--ink);margin:28px 0 10px;">2. Not Legal or Adjusting Services</h3>',
+      '<p style="font-size:14px;color:var(--ink2);line-height:1.75;margin-bottom:16px;">ClaimGuide 365 does not provide legal advice, legal representation, or licensed public adjusting services. The AI-generated content is educational and informational in nature. Nothing on this platform creates an attorney-client relationship or a licensed adjuster-client relationship. For legal advice or licensed public adjusting representation, consult a licensed professional in your jurisdiction.</p>',
+      '<h3 style="font-size:16px;font-weight:700;color:var(--ink);margin:28px 0 10px;">3. User Responsibilities</h3>',
+      '<p style="font-size:14px;color:var(--ink2);line-height:1.75;margin-bottom:8px;">By using ClaimGuide 365, you agree to:</p>',
+      '<ul style="font-size:14px;color:var(--ink2);line-height:1.9;margin-bottom:16px;padding-left:24px;">',
+      '<li>Provide accurate and truthful information about your insurance claim</li>',
+      '<li>Not use the platform to commit or facilitate insurance fraud</li>',
+      '<li>Not misrepresent facts to your insurer or any third party</li>',
+      '<li>Use the platform only for lawful purposes</li>',
+      '<li>Keep your account credentials confidential</li>',
+      '</ul>',
+      '<h3 style="font-size:16px;font-weight:700;color:var(--ink);margin:28px 0 10px;">4. AI-Generated Content</h3>',
+      '<p style="font-size:14px;color:var(--ink2);line-height:1.75;margin-bottom:16px;">AI guidance provided on this platform is generated by automated systems and may not reflect the most current laws or regulations in your jurisdiction. AI responses should not replace the advice of qualified legal, insurance, or financial professionals. ClaimGuide 365 makes no warranty as to the accuracy or completeness of any AI-generated content.</p>',
+      '<h3 style="font-size:16px;font-weight:700;color:var(--ink);margin:28px 0 10px;">5. Beta Service</h3>',
+      '<p style="font-size:14px;color:var(--ink2);line-height:1.75;margin-bottom:16px;">ClaimGuide 365 is currently offered as a beta service. Features may change, be added, or removed without notice. The service is provided "as is" during the beta period.</p>',
+      '<h3 style="font-size:16px;font-weight:700;color:var(--ink);margin:28px 0 10px;">6. Limitation of Liability</h3>',
+      '<p style="font-size:14px;color:var(--ink2);line-height:1.75;margin-bottom:16px;">To the fullest extent permitted by law, ClaimGuide 365 and its operators shall not be liable for any indirect, incidental, special, consequential, or punitive damages arising from your use of the platform. Your use of the platform is at your own risk.</p>',
+      '<h3 style="font-size:16px;font-weight:700;color:var(--ink);margin:28px 0 10px;">7. Contact</h3>',
+      '<p style="font-size:14px;color:var(--ink2);line-height:1.75;">For questions about these Terms, please contact us through the platform.</p>'
+    ].join('')
+  },
+  privacy: {
+    title: 'Privacy Policy',
+    content: [
+      '<h2 style="font-family:\'Lora\',serif;font-size:26px;font-weight:700;color:var(--ink);margin-bottom:6px;">Privacy Policy</h2>',
+      '<p style="font-size:13px;color:var(--ink4);margin-bottom:32px;">Last updated: June 2025</p>',
+      '<p style="font-size:14px;color:var(--ink2);line-height:1.75;margin-bottom:20px;">Your privacy matters to us. This policy explains what information we collect, how we use it, and your rights regarding your data.</p>',
+      '<h3 style="font-size:16px;font-weight:700;color:var(--ink);margin:28px 0 10px;">1. Information We Collect</h3>',
+      '<ul style="font-size:14px;color:var(--ink2);line-height:1.9;margin-bottom:16px;padding-left:24px;">',
+      '<li><strong>Account information:</strong> Email address and password (stored securely via Supabase authentication)</li>',
+      '<li><strong>Claim information:</strong> Details you enter about your insurance claim, property, and insurer</li>',
+      '<li><strong>Documents:</strong> Files you upload to your claim vault</li>',
+      '<li><strong>Chat history:</strong> Conversations with the ClaimGuide AI assistant</li>',
+      '</ul>',
+      '<h3 style="font-size:16px;font-weight:700;color:var(--ink);margin:28px 0 10px;">2. How We Use Your Information</h3>',
+      '<ul style="font-size:14px;color:var(--ink2);line-height:1.9;margin-bottom:16px;padding-left:24px;">',
+      '<li>To provide and improve the ClaimGuide 365 service</li>',
+      '<li>To generate personalized AI guidance based on your claim details</li>',
+      '<li>To send account-related communications (confirmation emails, important updates)</li>',
+      '</ul>',
+      '<h3 style="font-size:16px;font-weight:700;color:var(--ink);margin:28px 0 10px;">3. We Do Not Sell Your Data</h3>',
+      '<p style="font-size:14px;color:var(--ink2);line-height:1.75;margin-bottom:16px;">We do not sell, rent, or share your personal information or claim data with third parties for marketing purposes.</p>',
+      '<h3 style="font-size:16px;font-weight:700;color:var(--ink);margin:28px 0 10px;">4. Third-Party Services</h3>',
+      '<ul style="font-size:14px;color:var(--ink2);line-height:1.9;margin-bottom:16px;padding-left:24px;">',
+      '<li><strong>Supabase:</strong> Database and authentication</li>',
+      '<li><strong>Anthropic Claude API:</strong> AI-generated guidance</li>',
+      '<li><strong>Resend:</strong> Transactional email delivery</li>',
+      '<li><strong>Vercel:</strong> Platform hosting</li>',
+      '</ul>',
+      '<h3 style="font-size:16px;font-weight:700;color:var(--ink);margin:28px 0 10px;">5. Data Security</h3>',
+      '<p style="font-size:14px;color:var(--ink2);line-height:1.75;margin-bottom:16px;">We use industry-standard security practices including encrypted data transmission (HTTPS), secure authentication, and access controls.</p>',
+      '<h3 style="font-size:16px;font-weight:700;color:var(--ink);margin:28px 0 10px;">6. Your Rights</h3>',
+      '<ul style="font-size:14px;color:var(--ink2);line-height:1.9;margin-bottom:16px;padding-left:24px;">',
+      '<li>Access the personal information we hold about you</li>',
+      '<li>Request correction of inaccurate data</li>',
+      '<li>Request deletion of your account and associated data</li>',
+      '</ul>',
+      '<h3 style="font-size:16px;font-weight:700;color:var(--ink);margin:28px 0 10px;">7. Contact</h3>',
+      '<p style="font-size:14px;color:var(--ink2);line-height:1.75;">For privacy questions, contact us through the ClaimGuide 365 platform.</p>'
+    ].join('')
+  },
+  disclaimer: {
+    title: 'AI Disclaimer',
+    content: [
+      '<h2 style="font-family:\'Lora\',serif;font-size:26px;font-weight:700;color:var(--ink);margin-bottom:6px;">AI &amp; Service Disclaimer</h2>',
+      '<p style="font-size:13px;color:var(--ink4);margin-bottom:32px;">Last updated: June 2025</p>',
+      '<div style="background:var(--amber-l);border:1.5px solid var(--amber-b);border-radius:12px;padding:18px 20px;margin-bottom:28px;">',
+      '<div style="font-size:13px;font-weight:700;color:var(--amber);margin-bottom:8px;">&#x26a0;&#xfe0f; Important</div>',
+      '<p style="font-size:13.5px;color:var(--ink2);line-height:1.7;">ClaimGuide 365 provides educational information and AI-generated guidance. It is not a substitute for professional legal, insurance, or financial advice.</p>',
+      '</div>',
+      '<h3 style="font-size:16px;font-weight:700;color:var(--ink);margin:28px 0 10px;">What ClaimGuide AI Is</h3>',
+      '<p style="font-size:14px;color:var(--ink2);line-height:1.75;margin-bottom:16px;">ClaimGuide AI is an educational tool designed to help policyholders understand their rights, the claims process, and common insurance practices.</p>',
+      '<h3 style="font-size:16px;font-weight:700;color:var(--ink);margin:28px 0 10px;">What ClaimGuide AI Is Not</h3>',
+      '<ul style="font-size:14px;color:var(--ink2);line-height:1.9;margin-bottom:16px;padding-left:24px;">',
+      '<li><strong>Not legal advice:</strong> Nothing ClaimGuide AI says constitutes legal advice or creates an attorney-client relationship.</li>',
+      '<li><strong>Not public adjusting services:</strong> ClaimGuide AI does not act as a licensed public adjuster on your behalf and does not negotiate with your insurer as your representative.</li>',
+      '<li><strong>Not always accurate:</strong> AI systems can make mistakes. Always verify important information with your policy documents and a qualified professional.</li>',
+      '<li><strong>Not a guarantee of outcomes:</strong> Information provided does not guarantee any particular claim outcome or settlement amount.</li>',
+      '</ul>',
+      '<h3 style="font-size:16px;font-weight:700;color:var(--ink);margin:28px 0 10px;">When to Seek Professional Help</h3>',
+      '<ul style="font-size:14px;color:var(--ink2);line-height:1.9;margin-bottom:16px;padding-left:24px;">',
+      '<li>Your claim has been denied and you believe the denial is wrong</li>',
+      '<li>Your insurer is acting in bad faith</li>',
+      '<li>You are considering litigation against your insurer</li>',
+      '<li>Your claim involves complex coverage disputes or significant sums</li>',
+      '</ul>',
+      '<h3 style="font-size:16px;font-weight:700;color:var(--ink);margin:28px 0 10px;">Resources</h3>',
+      '<ul style="font-size:14px;color:var(--ink2);line-height:1.9;padding-left:24px;">',
+      '<li><strong>Licensed Public Adjusters:</strong> National Association of Public Insurance Adjusters (NAPIA) &mdash; napia.com</li>',
+      '<li><strong>Insurance Attorneys:</strong> Your state bar association\'s referral service</li>',
+      '<li><strong>Regulatory Complaints:</strong> Your state Department of Insurance or provincial regulator</li>',
+      '</ul>'
+    ].join('')
+  }
+};
+
+function showPage(page) {
+  var data = LEGAL_PAGES[page];
+  if (!data) return;
+  _lastLegalSource = document.querySelector('.screen.active') ? (document.querySelector('.screen.active').id || 'landing') : 'landing';
+  var el = document.getElementById('legal-content');
+  if (el) el.innerHTML = data.content;
+  hideAllScreens();
+  document.getElementById('screen-legal').classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+function backFromLegal() {
+  hideAllScreens();
+  var src = _lastLegalSource || 'screen-landing';
+  var target = src.startsWith('screen-') ? src : 'screen-landing';
+  var el = document.getElementById(target);
+  if (el) el.classList.add('active');
+  else document.getElementById('screen-landing').classList.add('active');
+}
+
+// ══════════════════════════════════════════════
+// RESEND WELCOME EMAIL (2. Fix)
+// ══════════════════════════════════════════════
+// ══════════════════════════════════════════════
+// ROLE ROUTING
+// ══════════════════════════════════════════════
+var APP_ROLE = 'policyholder'; // 'policyholder' | 'pro'
+
+// Copy the logo src to the role screen and pro screen on load
+function syncLogos() {
   var src = (document.querySelector('#screen-welcome img')||{}).src || '';
+  var rl = document.getElementById('role-logo');
+  var pl = document.getElementById('pro-logo');
   var cl = document.getElementById('ctr-logo');
+  if(rl && src) rl.src = src;
+  if(pl && src) pl.src = src;
   if(cl && src) cl.src = src;
+}
 
-  // Update sidebar info
-  var cn = document.getElementById('ctr-company-name');
-  var tl = document.getElementById('ctr-tier-label');
-  if(cn) cn.textContent = ACTIVE_CONTRACTOR.company;
-  var tier = CTR_TIERS[ACTIVE_CONTRACTOR.tier] || {};
-  if(tl) tl.textContent = (tier.label||'') + ' · $' + (tier.price||0) + '/mo';
+function hideAllScreens() {
+  ['screen-landing','screen-welcome','screen-confirm','screen-legal','screen-app','screen-pro'].forEach(function(id){
+    var el = document.getElementById(id);
+    if(el) el.classList.remove('active');
+  });
+}
 
-  var CTR_NAV_ITEMS = [
-    { id:'ctr-dashboard', icon:'grid',   label:'Dashboard' },
-    { id:'ctr-leads',     icon:'people', label:'My Leads' },
-    { id:'ctr-profile',   icon:'edit',   label:'My Profile' },
-    { id:'ctr-service',   icon:'clock',  label:'Service Area' },
-    { id:'ctr-messages',  icon:'chat',   label:'Messages',
-      badge: ACTIVE_CONTRACTOR.messages.filter(function(m){return !m.read;}).length || 0 },
-    { id:'ctr-billing',   icon:'dollar', label:'Plan & Billing' },
+// Pro / Contractor login — called from top-bar buttons only
+function enterAsRole(role) {
+  APP_ROLE = role;
+  syncLogos();
+  hideAllScreens();
+  // Always make sure screen-welcome is visible so _showRoleCard can find .welcome-card
+  document.getElementById('screen-welcome').classList.add('active');
+  if (role === 'pro') {
+    showProLogin();
+  }
+}
+
+// ── Pro login screen ─────────────────────────────────────────
+function _showRoleCard(icon, title, signinHTML, registerHTML) {
+  hideAllScreens();
+  document.getElementById('screen-welcome').classList.add('active');
+  var card = document.getElementById('main-welcome-card') || document.querySelector('.welcome-card');
+  if (!card) return;
+  if (!window._welcomeCardOriginal) window._welcomeCardOriginal = card.innerHTML;
+
+  card.innerHTML = `
+    <div style="text-align:center;margin-bottom:20px;">
+      <div style="font-size:28px;margin-bottom:6px;">${icon}</div>
+      <div class="serif" style="font-size:20px;font-weight:700;color:var(--ink);">${title}</div>
+    </div>
+
+    <!-- Tabs -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;border:1.5px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:20px;">
+      <button id="tab-signin" onclick="_switchRoleTab('signin')"
+        style="padding:10px;font-size:13px;font-weight:600;background:var(--teal);color:#fff;border:none;cursor:pointer;">
+        Sign In
+      </button>
+      <button id="tab-register" onclick="_switchRoleTab('register')"
+        style="padding:10px;font-size:13px;font-weight:600;background:var(--white);color:var(--ink3);border:none;cursor:pointer;">
+        Create Profile
+      </button>
+    </div>
+
+    <div class="card" style="padding:24px;">
+      <div id="role-panel-signin">${signinHTML}</div>
+      <div id="role-panel-register" style="display:none;">${registerHTML}</div>
+      <div style="text-align:center;margin-top:14px;">
+        <button onclick="cancelProLogin()" style="background:none;border:none;font-size:12.5px;color:var(--ink4);cursor:pointer;">← Back to main</button>
+      </div>
+    </div>
+  `;
+}
+
+function _switchRoleTab(tab) {
+  var signin   = document.getElementById('role-panel-signin');
+  var register = document.getElementById('role-panel-register');
+  var tsi      = document.getElementById('tab-signin');
+  var treg     = document.getElementById('tab-register');
+  if (!signin || !register) return;
+  if (tab === 'signin') {
+    signin.style.display   = 'block';
+    register.style.display = 'none';
+    tsi.style.background  = 'var(--teal)';  tsi.style.color  = '#fff';
+    treg.style.background = 'var(--white)'; treg.style.color = 'var(--ink3)';
+  } else {
+    signin.style.display   = 'none';
+    register.style.display = 'block';
+    tsi.style.background  = 'var(--white)'; tsi.style.color  = 'var(--ink3)';
+    treg.style.background = 'var(--teal)';  treg.style.color = '#fff';
+  }
+}
+
+// ── Professional login / register ───────────────────────────
+function showProLogin() {
+  var signinHTML = `
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div><label>Email Address</label><input type="email" id="pro-login-email" placeholder="you@firm.com" /></div>
+      <div><label>Password</label><input type="password" id="pro-login-password" placeholder="Your password" onkeydown="if(event.key==='Enter')proSignIn()" /></div>
+    </div>
+    <div id="pro-login-error" style="display:none;background:var(--amber-l);border:1px solid var(--amber-b);border-radius:8px;padding:10px 14px;font-size:12.5px;color:#92400E;margin-top:12px;"></div>
+    <button onclick="proSignIn()" class="btn btn-primary btn-lg" style="width:100%;margin-top:16px;" id="pro-login-btn">
+      Sign In to Professional Portal
+    </button>`;
+
+  var registerHTML = `
+    <p style="font-size:13px;color:var(--ink3);margin-bottom:14px;line-height:1.6;">Create your professional profile. Once submitted your account will be activated within 24 hours.</p>
+    <div style="display:flex;flex-direction:column;gap:11px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div><label>First Name</label><input id="pro-reg-first" placeholder="Jane" /></div>
+        <div><label>Last Name</label><input id="pro-reg-last" placeholder="Smith" /></div>
+      </div>
+      <div><label>Email Address</label><input type="email" id="pro-reg-email" placeholder="you@firm.com" /></div>
+      <div><label>Password</label><input type="password" id="pro-reg-password" placeholder="Min. 8 characters" /></div>
+      <div><label>Firm / Company Name</label><input id="pro-reg-firm" placeholder="Smith & Associates PA" /></div>
+      <div><label>Role</label>
+        <select id="pro-reg-role">
+          <option value="adjuster">Public Adjuster</option>
+          <option value="attorney">Insurance Attorney</option>
+          <option value="consultant">Claims Consultant</option>
+        </select>
+      </div>
+      <div><label>Phone Number</label><input id="pro-reg-phone" placeholder="(555) 555-5555" /></div>
+      <div><label>State / Province</label><input id="pro-reg-state" placeholder="e.g. Florida, Ontario" /></div>
+    </div>
+    <div id="pro-reg-error" style="display:none;background:var(--amber-l);border:1px solid var(--amber-b);border-radius:8px;padding:10px 14px;font-size:12.5px;color:#92400E;margin-top:12px;"></div>
+    <button onclick="proRegister()" class="btn btn-primary btn-lg" style="width:100%;margin-top:16px;" id="pro-reg-btn">
+      Create My Profile
+    </button>`;
+
+  _showRoleCard('⚖️', 'Professional Portal', signinHTML, registerHTML);
+}
+
+async function proRegister() {
+  var first    = (document.getElementById('pro-reg-first')   ||{}).value.trim();
+  var last     = (document.getElementById('pro-reg-last')    ||{}).value.trim();
+  var email    = (document.getElementById('pro-reg-email')   ||{}).value.trim();
+  var password = (document.getElementById('pro-reg-password')||{}).value;
+  var firm     = (document.getElementById('pro-reg-firm')    ||{}).value.trim();
+  var role     = (document.getElementById('pro-reg-role')    ||{}).value;
+  var phone    = (document.getElementById('pro-reg-phone')   ||{}).value.trim();
+  var state    = (document.getElementById('pro-reg-state')   ||{}).value.trim();
+  var btn      = document.getElementById('pro-reg-btn');
+
+  if (!first || !last)  { showProRegError('Please enter your full name.'); return; }
+  if (!email || email.indexOf('@') < 0) { showProRegError('Please enter a valid email.'); return; }
+  if (!password || password.length < 8) { showProRegError('Password must be at least 8 characters.'); return; }
+  if (!firm)  { showProRegError('Please enter your firm or company name.'); return; }
+
+  btn.textContent = 'Submitting…'; btn.disabled = true;
+
+  try {
+    if (SUPA && SUPA_URL !== 'YOUR_SUPABASE_URL') {
+      var res = await SUPA.auth.signUp({
+        email, password,
+        options: { data: { name: first + ' ' + last, firm, role, phone, state, account_type: 'pro' } }
+      });
+      if (res.error) { showProRegError(res.error.message); btn.textContent = 'Create My Profile'; btn.disabled = false; return; }
+      if (!res.data.user) { showProRegError('This email may already be registered. Try signing in instead.'); btn.textContent = 'Create My Profile'; btn.disabled = false; return; }
+
+      var userId = res.data.user.id;
+
+      // Auto-confirm email so they can sign in immediately
+      // (handled by Supabase auth settings — if email confirm is off this works instantly)
+
+      // Create firm for this pro
+      var firmSlug = firm.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+      var firmRes = await SUPA.from('firms').insert({
+        name:  firm,
+        slug:  firmSlug + '-' + userId.substring(0,6),
+        email: email,
+        plan:  'solo'
+      }).select('id').single();
+
+      var firmId = firmRes.data ? firmRes.data.id : null;
+
+      // Create pro_users row immediately — auto approved
+      await SUPA.from('pro_users').insert({
+        auth_id: userId,
+        firm_id: firmId,
+        email:   email,
+        name:    first + ' ' + last,
+        role:    role
+      });
+
+      SESSION.userId = userId;
+      SESSION.firmId = firmId;
+      SESSION.role   = 'pro';
+      APP_ROLE       = 'pro';
+    }
+
+    // Show success and redirect to pro portal
+    var card = document.getElementById('main-welcome-card') || document.querySelector('.welcome-card');
+    if (card && window._welcomeCardOriginal) card.innerHTML = window._welcomeCardOriginal;
+    hideAllScreens();
+    document.getElementById('screen-pro').classList.add('active');
+    PRO_FILES = [];
+    renderProList();
+    toast('\u2713 Welcome to ClaimGuide 365, ' + first + '!');
+
+  } catch(e) {
+    console.error('proRegister error:', e);
+    showProRegError('Something went wrong — please try again.');
+    btn.textContent = 'Create My Profile'; btn.disabled = false;
+  }
+}
+
+function showProRegError(msg) {
+  var el = document.getElementById('pro-reg-error');
+  if (el) { el.style.display = 'block'; el.textContent = msg; }
+}
+
+// ── Contractor login / register ──────────────────────────────
+function showProLogin() {
+  var signinHTML = `
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div><label>Email Address</label><input type="email" id="pro-login-email" placeholder="you@firm.com" /></div>
+      <div><label>Password</label><input type="password" id="pro-login-password" placeholder="Your password" onkeydown="if(event.key==='Enter')proSignIn()" /></div>
+    </div>
+    <div id="pro-login-error" style="display:none;background:var(--amber-l);border:1px solid var(--amber-b);border-radius:8px;padding:10px 14px;font-size:12.5px;color:#92400E;margin-top:12px;"></div>
+    <button onclick="proSignIn()" class="btn btn-primary btn-lg" style="width:100%;margin-top:16px;" id="pro-login-btn">
+      Sign In to Professional Portal
+    </button>`;
+
+  var registerHTML = `
+    <p style="font-size:13px;color:var(--ink3);margin-bottom:14px;line-height:1.6;">Create your professional profile. Once submitted your account will be activated within 24 hours.</p>
+    <div style="display:flex;flex-direction:column;gap:11px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div><label>First Name</label><input id="pro-reg-first" placeholder="Jane" /></div>
+        <div><label>Last Name</label><input id="pro-reg-last" placeholder="Smith" /></div>
+      </div>
+      <div><label>Email Address</label><input type="email" id="pro-reg-email" placeholder="you@firm.com" /></div>
+      <div><label>Password</label><input type="password" id="pro-reg-password" placeholder="Min. 8 characters" /></div>
+      <div><label>Firm / Company Name</label><input id="pro-reg-firm" placeholder="Smith & Associates PA" /></div>
+      <div><label>Role</label>
+        <select id="pro-reg-role">
+          <option value="adjuster">Public Adjuster</option>
+          <option value="attorney">Insurance Attorney</option>
+          <option value="consultant">Claims Consultant</option>
+        </select>
+      </div>
+      <div><label>Phone Number</label><input id="pro-reg-phone" placeholder="(555) 555-5555" /></div>
+      <div><label>State / Province</label><input id="pro-reg-state" placeholder="e.g. Florida, Ontario" /></div>
+    </div>
+    <div id="pro-reg-error" style="display:none;background:var(--amber-l);border:1px solid var(--amber-b);border-radius:8px;padding:10px 14px;font-size:12.5px;color:#92400E;margin-top:12px;"></div>
+    <button onclick="proRegister()" class="btn btn-primary btn-lg" style="width:100%;margin-top:16px;" id="pro-reg-btn">
+      Create My Profile
+    </button>`;
+
+  _showRoleCard('⚖️', 'Professional Portal', signinHTML, registerHTML);
+}
+
+async function proRegister() {
+  var first    = (document.getElementById('pro-reg-first')   ||{}).value.trim();
+  var last     = (document.getElementById('pro-reg-last')    ||{}).value.trim();
+  var email    = (document.getElementById('pro-reg-email')   ||{}).value.trim();
+  var password = (document.getElementById('pro-reg-password')||{}).value;
+  var firm     = (document.getElementById('pro-reg-firm')    ||{}).value.trim();
+  var role     = (document.getElementById('pro-reg-role')    ||{}).value;
+  var phone    = (document.getElementById('pro-reg-phone')   ||{}).value.trim();
+  var state    = (document.getElementById('pro-reg-state')   ||{}).value.trim();
+  var btn      = document.getElementById('pro-reg-btn');
+
+  if (!first || !last)  { showProRegError('Please enter your full name.'); return; }
+  if (!email || email.indexOf('@') < 0) { showProRegError('Please enter a valid email.'); return; }
+  if (!password || password.length < 8) { showProRegError('Password must be at least 8 characters.'); return; }
+  if (!firm)  { showProRegError('Please enter your firm or company name.'); return; }
+
+  btn.textContent = 'Submitting…'; btn.disabled = true;
+
+  try {
+    if (SUPA && SUPA_URL !== 'YOUR_SUPABASE_URL') {
+      var res = await SUPA.auth.signUp({
+        email, password,
+        options: { data: { name: first + ' ' + last, firm, role, phone, state, account_type: 'pro' } }
+      });
+      if (res.error) { showProRegError(res.error.message); btn.textContent = 'Create My Profile'; btn.disabled = false; return; }
+      if (!res.data.user) { showProRegError('This email may already be registered. Try signing in instead.'); btn.textContent = 'Create My Profile'; btn.disabled = false; return; }
+
+      var userId = res.data.user.id;
+
+      // Auto-confirm email so they can sign in immediately
+      // (handled by Supabase auth settings — if email confirm is off this works instantly)
+
+      // Create firm for this pro
+      var firmSlug = firm.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+      var firmRes = await SUPA.from('firms').insert({
+        name:  firm,
+        slug:  firmSlug + '-' + userId.substring(0,6),
+        email: email,
+        plan:  'solo'
+      }).select('id').single();
+
+      var firmId = firmRes.data ? firmRes.data.id : null;
+
+      // Create pro_users row immediately — auto approved
+      await SUPA.from('pro_users').insert({
+        auth_id: userId,
+        firm_id: firmId,
+        email:   email,
+        name:    first + ' ' + last,
+        role:    role
+      });
+
+      SESSION.userId = userId;
+      SESSION.firmId = firmId;
+      SESSION.role   = 'pro';
+      APP_ROLE       = 'pro';
+    }
+
+    // Show success and redirect to pro portal
+    var card = document.getElementById('main-welcome-card') || document.querySelector('.welcome-card');
+    if (card && window._welcomeCardOriginal) card.innerHTML = window._welcomeCardOriginal;
+    hideAllScreens();
+    document.getElementById('screen-pro').classList.add('active');
+    PRO_FILES = [];
+    renderProList();
+    toast('\u2713 Welcome to ClaimGuide 365, ' + first + '!');
+
+  } catch(e) {
+    console.error('proRegister error:', e);
+    showProRegError('Something went wrong — please try again.');
+    btn.textContent = 'Create My Profile'; btn.disabled = false;
+  }
+}
+
+function showProRegError(msg) {
+  var el = document.getElementById('pro-reg-error');
+  if (el) { el.style.display = 'block'; el.textContent = msg; }
+}
+
+// ── Contractor login / register ──────────────────────────────
+function showCtrLoginError(msg) {
+  var el = document.getElementById('ctr-login-error');
+  if (el) { el.style.display = 'block'; el.textContent = msg; }
+}
+
+async function contractorRegister() {
+  var first    = (document.getElementById('ctr-reg-first')   ||{}).value.trim();
+  var last     = (document.getElementById('ctr-reg-last')    ||{}).value.trim();
+  var company  = (document.getElementById('ctr-reg-company') ||{}).value.trim();
+  var email    = (document.getElementById('ctr-reg-email')   ||{}).value.trim();
+  var password = (document.getElementById('ctr-reg-password')||{}).value;
+  var phone    = (document.getElementById('ctr-reg-phone')   ||{}).value.trim();
+  var trade    = (document.getElementById('ctr-reg-trade')   ||{}).value;
+  var location = (document.getElementById('ctr-reg-location')||{}).value.trim();
+  var radius   = (document.getElementById('ctr-reg-radius')  ||{}).value;
+  var licence  = (document.getElementById('ctr-reg-licence') ||{}).value.trim();
+  var btn      = document.getElementById('ctr-reg-btn');
+
+  if (!first || !last)  { showCtrRegError('Please enter your full name.'); return; }
+  if (!company) { showCtrRegError('Please enter your company name.'); return; }
+  if (!email || email.indexOf('@') < 0) { showCtrRegError('Please enter a valid email.'); return; }
+  if (!password || password.length < 8) { showCtrRegError('Password must be at least 8 characters.'); return; }
+  if (!location) { showCtrRegError('Please enter your city and state/province.'); return; }
+
+  btn.textContent = 'Submitting…'; btn.disabled = true;
+
+  try {
+    if (SUPA && SUPA_URL !== 'YOUR_SUPABASE_URL') {
+      var res = await SUPA.auth.signUp({
+        email, password,
+        options: { data: { name: first + ' ' + last, company, trade, account_type: 'contractor' } }
+      });
+      if (res.error) { showCtrRegError(res.error.message); btn.textContent = 'Create My Profile'; btn.disabled = false; return; }
+      if (!res.data.user) { showCtrRegError('This email may already be registered. Try signing in instead.'); btn.textContent = 'Create My Profile'; btn.disabled = false; return; }
+
+      var userId = res.data.user.id;
+
+      // Save contractor profile — auto approved
+      await SUPA.from('contractor_registrations').insert({
+        auth_id:        userId,
+        email:          email,
+        name:           first + ' ' + last,
+        company_name:   company,
+        phone:          phone,
+        trade:          trade,
+        location:       location,
+        service_radius: parseInt(radius),
+        licence_number: licence,
+        status:         'approved'
+      });
+
+      SESSION.userId = userId;
+      SESSION.role   = 'contractor';
+      APP_ROLE       = 'contractor';
+    }
+
+    // Redirect straight to contractor portal
+    var card = document.getElementById('main-welcome-card') || document.querySelector('.welcome-card');
+    if (card && window._welcomeCardOriginal) card.innerHTML = window._welcomeCardOriginal;
+    hideAllScreens();
+    toast('\u2713 Welcome to ClaimGuide 365, ' + first + '!');
+
+  } catch(e) {
+    console.error('contractorRegister error:', e);
+    showCtrRegError('Something went wrong — please try again.');
+    btn.textContent = 'Create My Profile'; btn.disabled = false;
+  }
+}
+
+function showCtrRegError(msg) {
+  var el = document.getElementById('ctr-reg-error');
+  if (el) { el.style.display = 'block'; el.textContent = msg; }
+}
+
+function cancelProLogin() {
+  // Restore original welcome card
+  var card = document.getElementById('main-welcome-card') || document.querySelector('.welcome-card');
+  if (card && window._welcomeCardOriginal) {
+    card.innerHTML = window._welcomeCardOriginal;
+  }
+  APP_ROLE = 'policyholder';
+  syncLogos();
+}
+
+async function proSignIn() {
+  var email    = (document.getElementById('pro-login-email')   ||{}).value.trim();
+  var password = (document.getElementById('pro-login-password')||{}).value;
+  var btn      = document.getElementById('pro-login-btn');
+  var errDiv   = document.getElementById('pro-login-error');
+
+  if (!email || !password) { showProLoginError('Please enter your email and password.'); return; }
+
+  btn.textContent = 'Signing in…'; btn.disabled = true;
+
+  try {
+    if (SUPA && SUPA_URL !== 'YOUR_SUPABASE_URL') {
+      // ── Live mode ──
+      var res = await SUPA.auth.signInWithPassword({ email, password });
+      if (res.error) {
+        var msg = res.error.message;
+        if (msg.toLowerCase().indexOf('email not confirmed') !== -1) {
+          msg = 'Please confirm your email first — check your inbox for a confirmation link.';
+        }
+        showProLoginError(msg);
+        btn.textContent = 'Sign In to Professional Portal';
+        btn.disabled = false;
+        return;
+      }
+
+      // Check they have a pro_users row
+      var proRes = await SUPA.from('pro_users')
+        .select('id, firm_id, name, role')
+        .eq('auth_id', res.data.user.id)
+        .maybeSingle();
+
+      if (!proRes.data) {
+        showProLoginError('No professional account found for this email. Contact your firm administrator.');
+        await SUPA.auth.signOut();
+        btn.textContent = 'Sign In to Professional Portal'; btn.disabled = false;
+        return;
+      }
+
+      SESSION.userId = res.data.user.id;
+      SESSION.firmId = proRes.data.firm_id;
+      SESSION.role   = 'pro';
+
+      // Load all claims for this firm from Supabase
+      await loadProFilesFromDB(proRes.data.firm_id);
+
+    } else {
+      // ── Demo mode — use seeded data ──
+      seedProDemoFiles();
+      SESSION.role = 'pro';
+    }
+
+    // Restore welcome card and go to pro screen
+    var card = document.getElementById('main-welcome-card') || document.querySelector('.welcome-card');
+    if (card && window._welcomeCardOriginal) card.innerHTML = window._welcomeCardOriginal;
+
+    hideAllScreens();
+    document.getElementById('screen-pro').classList.add('active');
+    renderProList();
+    toast('\u2713 Welcome back!');
+
+  } catch(e) {
+    showProLoginError('Something went wrong — please try again.');
+    btn.textContent = 'Sign In to Professional Portal'; btn.disabled = false;
+  }
+}
+
+function showProLoginError(msg) {
+  var el = document.getElementById('pro-login-error');
+  if (el) { el.style.display = 'block'; el.textContent = msg; }
+}
+
+// ── Load all firm client files from Supabase ─────────────────
+async function loadProFilesFromDB(firmId) {
+  if (!SUPA || !firmId) { seedProDemoFiles(); return; }
+  try {
+    var res = await SUPA.from('claims')
+      .select('id, claim_data, updated_at, policyholders(name, email)')
+      .eq('firm_id', firmId)
+      .order('updated_at', { ascending: false });
+
+    if (res.error || !res.data || res.data.length === 0) {
+      // No real files yet — show empty state (no demo data for pro in live mode)
+      PRO_FILES = [];
+      return;
+    }
+
+    PRO_FILES = res.data.map(function(row) {
+      var claim = row.claim_data || {};
+      return {
+        id:       row.id,
+        dbId:     row.id,           // Supabase claims.id for saving back
+        messages: claim._proMessages || [],
+        notes:    claim._proNotes    || '',
+        claim:    claim,
+        updatedAt: row.updated_at
+      };
+    });
+
+  } catch(e) {
+    console.warn('loadProFilesFromDB failed:', e.message);
+    seedProDemoFiles();
+  }
+}
+
+// ── Save pro notes/messages back to the claim in Supabase ────
+async function saveProFileToDB(fileIndex) {
+  if (!SUPA || !SESSION.userId) return;
+  var f = PRO_FILES[fileIndex];
+  if (!f || !f.dbId) return;
+  try {
+    // Merge pro metadata back into claim_data
+    var claimToSave = Object.assign({}, f.claim, {
+      _proMessages: f.messages,
+      _proNotes:    f.notes
+    });
+    await SUPA.from('claims')
+      .update({ claim_data: claimToSave, updated_at: new Date().toISOString() })
+      .eq('id', f.dbId);
+  } catch(e) { console.warn('saveProFileToDB failed:', e.message); }
+}
+
+
+
+
+
+// ══════════════════════════════════════════════
+// PRO STATE
+// ══════════════════════════════════════════════
+// ══════════════════════════════════════════════
+// PRO STATE
+// ══════════════════════════════════════════════
+
+// Each entry is a full CLAIM-shaped object plus pro metadata
+var PRO_FILES = []; // [{claim:{...}, messages:[], notes:[], id:'...'}]
+var PRO_ACTIVE_FILE = null; // index into PRO_FILES currently open
+var PRO_FILE_PAGE = 'pf-overview'; // current page inside a file
+
+// Seed some demo files so the dashboard isn't empty on first login
+function seedProDemoFiles() {
+  if (PRO_FILES.length) return;
+  PRO_FILES = [
+    {
+      id: 'f001',
+      messages: [
+        { role:'pro', text:'I have reviewed your file. Please upload the insurer estimate as soon as you receive it.', time:'9:42 AM', read:true },
+        { role:'client', text:'Hi — I just received a letter from CAA. I will scan and upload it today.', time:'11:15 AM', read:false }
+      ],
+      notes: [{ text:'Significant mold risk given duration of water exposure. Policy has $10K sublimit — need to push for consequential damage argument.', time:'Apr 10, 2026, 9:40 AM' }],
+      claim: {
+        name:'Robert Bertucci', address:'16025 Concession 17th, King, ON',
+        insurer:'CAA Insurance', claimno:'CAA-2024-88312', losstype:'Water Damage',
+        dol:'2024-03-14', desc:'Water supply line behind refrigerator failed overnight. Kitchen floor, base cabinets, and basement ceiling damaged.',
+        claimType:'property',
+        adjusterName:'Sarah Mitchell', adjusterPhone:'416-555-0182', adjusterEmail:'s.mitchell@caains.ca',
+        contacts:[{ id:'c1', role:'Insurer Adjuster', name:'Sarah Mitchell', phone:'416-555-0182', email:'s.mitchell@caains.ca', company:'CAA Insurance', notes:'' }],
+        commLog:[
+          { id:'cl1', type:'call', date:'2024-03-15', time:'10:30', with:'Sarah Mitchell, CAA Insurance', summary:'Reported loss. Claim opened, assigned claim number CAA-2024-88312. Inspection scheduled for March 19.', result:'Inspection booked', followup:'' },
+          { id:'cl2', type:'email', date:'2024-03-19', time:'14:00', with:'Sarah Mitchell, CAA Insurance', summary:'Adjuster visited. Reviewed scope. Did not go into basement. Said estimate will come within 10 business days.', result:'Awaiting estimate', followup:'Follow up if no estimate by Apr 2' }
+        ],
+        contractors:[
+          { name:'City Restoration Services', status:'hired', phone:'905-555-0244', estimate:103858, license:true, notes:'Full scope estimate provided Mar 25' },
+          { name:'CanBilt Construction', status:'quoted', phone:'416-555-0311', estimate:61616, license:true, notes:'Insurer preferred vendor — lower estimate' }
+        ],
+        offers:[
+          { id:'of1', type:'insurer_offer', amount:61616, date:'2024-04-01', ref:'CAA est. #2024-193', notes:'Based on CanBilt estimate. Excludes O&P, mold, and basement ceiling.' },
+        ],
+        timeline:[
+          { id:'t1', label:'Date of Loss', date:'2024-03-14', status:'done', note:'Water line failure discovered morning of Mar 14' },
+          { id:'t2', label:'Claim Filed', date:'2024-03-15', status:'done', note:'' },
+          { id:'t3', label:'Insurer Acknowledgement', date:'2024-03-19', status:'done', note:'' },
+          { id:'t4', label:'Proof of Loss Deadline', date:'2024-05-13', status:'pending', note:'60 days from loss — check policy' },
+          { id:'t5', label:'Suit Limitation', date:'2025-03-14', status:'pending', note:'1 year from loss under Ontario Insurance Act' },
+        ],
+        vault:{ docs:[
+          { name:'CAA_Estimate_CanBilt.pdf', type:'Insurer Estimate', uploaded:'Apr 1, 2024' },
+          { name:'CityRestoration_Quote.pdf', type:'Contractor Estimate', uploaded:'Mar 26, 2024' },
+        ], photos:[
+          { name:'kitchen_floor_01.jpg', room:'Kitchen', uploaded:'Mar 14, 2024' },
+          { name:'basement_ceiling_01.jpg', room:'Basement', uploaded:'Mar 14, 2024' },
+        ]},
+        damages:[{ name:'Kitchen', note:'Floor buckled ~200 sqft. Base cabinets water stained.', photos:[] },{ name:'Basement', note:'Ceiling drywall saturated. Insulation damaged.', photos:[] }],
+        contents:[], estimates:{ insurerTotal:61616, contractorTotal:103858, gap:42242, contractorName:'City Restoration Services' },
+        steps:{ emergency:true, policy:true, report:true, damage:true, contacts:true, contents:false, commlog:true, contractors:true, estimates:true, timeline:true, settlement:false, analysis:false },
+        auto:{ policeReport:'', otherDriver:{name:'',phone:'',insurer:'',plate:''}, witnesses:[], vehicleYear:'', vehicleMake:'', vehicleModel:'', shopEstimates:[], rentalNeeded:false, totalLoss:false, dvClaim:false }
+      }
+    },
+    {
+      id: 'f002', messages:[], notes:[],
+      claim:{
+        name:'Diana Okafor', address:'44 Maple Ridge Dr, Barrie, ON',
+        insurer:'Intact Insurance', claimno:'', losstype:'Fire & Smoke',
+        dol:'2024-04-03', desc:'Kitchen fire started from stove. Fire contained to kitchen but heavy smoke damage throughout main floor.',
+        claimType:'property',
+        adjusterName:'', adjusterPhone:'', adjusterEmail:'',
+        contacts:[], commLog:[], contractors:[], offers:[],
+        timeline:[
+          { id:'t1', label:'Date of Loss', date:'2024-04-03', status:'done', note:'' },
+          { id:'t2', label:'Claim Filed', date:'2024-04-03', status:'done', note:'' },
+          { id:'t4', label:'Proof of Loss Deadline', date:'2024-06-02', status:'pending', note:'60 days from loss' },
+          { id:'t5', label:'Suit Limitation', date:'2025-04-03', status:'pending', note:'' },
+        ],
+        vault:{ docs:[], photos:[] }, damages:[], contents:[],
+        steps:{ emergency:true, policy:false, report:true, damage:false, contacts:false, contents:false, commlog:false, contractors:false, estimates:false, timeline:true, settlement:false, analysis:false },
+        auto:{ policeReport:'', otherDriver:{name:'',phone:'',insurer:'',plate:''}, witnesses:[], vehicleYear:'', vehicleMake:'', vehicleModel:'', shopEstimates:[], rentalNeeded:false, totalLoss:false, dvClaim:false }
+      }
+    }
   ];
+}
 
-  document.getElementById('ctr-nav').innerHTML = CTR_NAV_ITEMS.map(function(item) {
-    var isActive = CTR_PAGE === item.id;
-    return '<div style="display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:8px;cursor:pointer;font-size:13px;'
-      +(isActive?'background:rgba(255,255,255,.1);color:#fff;font-weight:600;':'color:#4a7a4a;')
-      +'" data-cid="'+item.id+'" onclick="goCtrPage(this.dataset.cid)">'
-      +'<span style="flex-shrink:0;">'+svgIcon(item.icon,14,isActive?'#fff':'#4a7a4a')+'</span>'
-      +'<span style="flex:1;">'+item.label+'</span>'
-      +(item.badge?'<span style="background:var(--green);color:#fff;font-size:10px;font-weight:700;padding:1px 7px;border-radius:9999px;">'+item.badge+'</span>':'')
+// ══════════════════════════════════════════════
+// PRO: FILE LIST (main dashboard)
+// ══════════════════════════════════════════════
+
+function renderProDashboard() {
+  syncLogos();
+  seedProDemoFiles();
+  var el = document.getElementById('screen-pro');
+  if(el) el.classList.add('active');
+
+  var stepKeys = ['emergency','policy','report','damage','contacts','contents','commlog','contractors','estimates','timeline','settlement','analysis'];
+
+  var cards = PRO_FILES.map(function(f, i) {
+    var c = f.claim;
+    var done = stepKeys.filter(function(k){ return c.steps && c.steps[k]; }).length;
+    var pct  = Math.round(done / stepKeys.length * 100);
+    var unread = f.messages.filter(function(m){ return m.role==='client' && !m.read; }).length;
+    var urgentDeadline = (c.timeline||[]).find(function(t){
+      var d = daysUntil(t.date);
+      return t.status !== 'done' && d !== null && d >= 0 && d <= 14;
+    });
+    var offerLast = (c.offers||[]).filter(function(o){return o.type==='insurer_offer';}).slice(-1)[0];
+
+    return '<div class="card" style="cursor:pointer;transition:box-shadow .15s;" onclick="openProFile('+i+')" '
+      +'onmouseover="this.style.boxShadow=\'var(--shadow2)\';" onmouseout="this.style.boxShadow=\'\';">'
+      // Header row
+      +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">'
+      +'<div style="display:flex;align-items:center;gap:11px;">'
+      +'<div style="width:40px;height:40px;border-radius:10px;background:var(--teal-l);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:15px;font-weight:700;color:var(--teal);">'
+      +c.name.split(' ').map(function(n){return n[0];}).join('').slice(0,2).toUpperCase()+'</div>'
+      +'<div>'
+      +'<div style="font-size:15px;font-weight:700;color:var(--ink);">'+c.name+'</div>'
+      +'<div style="font-size:12px;color:var(--ink4);margin-top:1px;">'+c.losstype+' · '+c.insurer+'</div>'
+      +'</div>'
+      +'</div>'
+      +'<div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px;">'
+      +(unread ? '<span class="badge" style="background:var(--teal);color:#fff;">'+unread+' new message'+(unread>1?'s':'')+'</span>' : '')
+      +(urgentDeadline ? '<span class="badge" style="background:var(--amber-l);color:var(--amber);">⚠ '+daysUntil(urgentDeadline.date)+'d deadline</span>' : '')
+      +'</div>'
+      +'</div>'
+      // Details strip
+      +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;background:var(--paper);border-radius:8px;margin-bottom:10px;border:1px solid var(--border);">'
+      +[
+        ['Address', c.address.split(',')[0] || '—'],
+        ['Claim #', c.claimno || 'Pending'],
+        ['Date of Loss', fmtDate(c.dol)],
+      ].map(function(p, idx){
+        return '<div style="padding:7px 12px;'+(idx<2?'border-right:1px solid var(--border);':'')+'"><div style="font-size:10px;font-weight:700;color:var(--ink4);letter-spacing:.04em;">'+p[0]+'</div><div style="font-size:12.5px;font-weight:600;color:var(--ink);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+p[1]+'</div></div>';
+      }).join('')
+      +'</div>'
+      // Progress + settlement
+      +'<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">'
+      +'<div style="flex:1;">'
+      +'<div style="font-size:11px;color:var(--ink4);margin-bottom:4px;">'+done+' of '+stepKeys.length+' steps complete</div>'
+      +'<div class="progress-track"><div class="progress-fill" style="width:'+pct+'%"></div></div>'
+      +'</div>'
+      +(offerLast ? '<div style="text-align:right;flex-shrink:0;"><div style="font-size:10px;color:var(--ink4);">Latest offer</div><div style="font-size:15px;font-weight:700;color:var(--amber);font-family:\'Lora\',serif;">$'+Number(offerLast.amount).toLocaleString()+'</div></div>' : '')
+      +'<div style="color:var(--ink4);">'+svgIcon('chevron-right',16,'var(--ink4)')+'</div>'
+      +'</div>'
       +'</div>';
   }).join('');
 
-  goCtrPage(CTR_PAGE);
+  var emptyState = !PRO_FILES.length
+    ? '<div class="card-flat" style="text-align:center;padding:60px;color:var(--ink4);">'
+      +svgIcon('lock',40,'var(--ink4)')
+      +'<div style="margin-top:14px;font-size:15px;font-weight:600;color:var(--ink2);">No client files yet</div>'
+      +'<div style="font-size:13px;color:var(--ink4);margin-top:6px;max-width:340px;margin-left:auto;margin-right:auto;line-height:1.6;">Add a new client file to get started. Each file tracks all claim documentation, communication, and deadlines for one client.</div>'
+      +'<button onclick="showAddFileForm()" class="btn btn-primary" style="margin-top:18px;">'+svgIcon('plus',14,'#fff')+' Add First Client File</button>'
+      +'</div>' : '';
+
+  document.getElementById('pro-body').innerHTML =
+    '<div style="max-width:840px;margin:0 auto;">'
+    +'<div style="display:flex;flex-direction:column;gap:12px;">'
+    +(cards || emptyState)
+    +'</div>'
+    +'</div>';
 }
+
+function showAddFileForm() {
+  document.getElementById('pro-page-title').textContent = 'New Client File';
+  document.getElementById('pro-page-sub').textContent = 'Enter the client\'s claim details to create a new file';
+  document.getElementById('pro-page-actions').innerHTML = '';
+
+  document.getElementById('pro-body').innerHTML =
+    '<div style="max-width:640px;margin:0 auto;">'
+    +'<div class="card">'
+    +'<div style="font-size:14px;font-weight:700;color:var(--ink);margin-bottom:16px;">Client Information</div>'
+    +'<div style="display:flex;flex-direction:column;gap:12px;">'
+    +'<div class="grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">'
+    +'<div><label>Client Full Name</label><input id="nf-name" placeholder="Jane Smith"></div>'
+    +'<div><label>Property Address / Vehicle</label><input id="nf-addr" placeholder="123 Main St, City, ON"></div>'
+    +'<div><label>Insurance Company</label><input id="nf-insurer" placeholder="e.g. Intact Insurance"></div>'
+    +'<div><label>Claim Number (if known)</label><input id="nf-claimno" placeholder="Optional"></div>'
+    +'<div><label>Claim Type</label><select id="nf-claimtype"><option value="property">Property</option><option value="auto">Auto / Vehicle</option></select></div>'
+    +'<div><label>Type of Loss</label><select id="nf-losstype"><option>Water Damage</option><option>Fire &amp; Smoke</option><option>Wind / Hail</option><option>Flood</option><option>Mold</option><option>Collision</option><option>Comprehensive</option><option>Theft / Vandalism</option><option>Other</option></select></div>'
+    +'<div><label>Date of Loss</label><input type="date" id="nf-dol" value="'+new Date().toISOString().split('T')[0]+'"></div>'
+    +'<div><label>Your Role</label><select id="nf-prorole"><option value="Public Adjuster">Public Adjuster</option><option value="Insurance Attorney">Insurance Attorney</option><option value="Consultant">Consultant</option></select></div>'
+    +'</div>'
+    +'<div><label>Brief Description of Loss</label><textarea id="nf-desc" rows="2" placeholder="e.g. Burst pipe in basement, water damage to floor and walls..."></textarea></div>'
+    +'</div>'
+    +'<div style="display:flex;gap:10px;margin-top:16px;">'
+    +'<button onclick="saveNewFile()" class="btn btn-primary">'+svgIcon('check',13,'#fff')+' Create File</button>'
+    +'<button onclick="renderProList()" class="btn btn-ghost">Cancel</button>'
+    +'</div>'
+    +'</div>'
+    +'</div>';
+}
+
+function saveNewFile() {
+  var name = (document.getElementById('nf-name')||{}).value.trim();
+  var addr = (document.getElementById('nf-addr')||{}).value.trim();
+  var ins  = (document.getElementById('nf-insurer')||{}).value.trim();
+  if(!name || !addr || !ins) { toast('Name, address, and insurer are required', '#D97706'); return; }
+
+  var dol  = (document.getElementById('nf-dol')||{}).value;
+  var newClaim = {
+    name: name, address: addr, insurer: ins,
+    claimno:   (document.getElementById('nf-claimno')   ||{}).value.trim(),
+    claimType: (document.getElementById('nf-claimtype') ||{}).value || 'property',
+    losstype:  (document.getElementById('nf-losstype')  ||{}).value || 'Other',
+    dol:       dol,
+    desc:      (document.getElementById('nf-desc')      ||{}).value.trim(),
+    adjusterName:'', adjusterPhone:'', adjusterEmail:'', inspectionDate:'',
+    contacts:[], commLog:[], contractors:[], offers:[],
+    damages:[], contents:[], estimates:null, analysis:null,
+    vault:{ docs:[], photos:[] },
+    steps:{ emergency:false, policy:false, report:false, damage:false, contacts:false, contents:false, commlog:false, contractors:false, estimates:false, timeline:false, settlement:false, analysis:false },
+    auto:{ policeReport:'', otherDriver:{name:'',phone:'',insurer:'',plate:''}, witnesses:[], vehicleYear:'', vehicleMake:'', vehicleModel:'', shopEstimates:[], rentalNeeded:false, totalLoss:false, dvClaim:false }
+  };
+  // Seed timeline from dol
+  var tmpClaim = CLAIM;
+  CLAIM = newClaim;
+  seedTimeline();
+  newClaim.timeline = CLAIM.timeline;
+  CLAIM = tmpClaim;
+
+  var proRole = (document.getElementById('nf-prorole')||{}).value || 'Public Adjuster';
+  PRO_FILES.push({ id:'f'+Date.now(), messages:[], notes:[], proRole:proRole, claim:newClaim });
+  toast('\u2713 File created for '+name);
+  renderProList();
+}
+
+// ══════════════════════════════════════════════
+// PRO: OPEN A FILE (drill into client view)
+// ══════════════════════════════════════════════
+
+function openProFile(idx) {
+  PRO_ACTIVE_FILE = idx;
+  PRO_FILE_PAGE = 'pf-overview';
+  renderProFileView();
+}
+
+function buildProFileNav() {
+  var f      = PRO_FILES[PRO_ACTIVE_FILE];
+  var c      = f.claim;
+  var isAuto = c.claimType === 'auto';
+
+  // Topbar
+  document.getElementById('pro-page-title').textContent = c.name;
+  document.getElementById('pro-page-sub').textContent = c.losstype + ' · ' + c.insurer + (c.claimno?' · #'+c.claimno:'');
+  document.getElementById('pro-page-actions').innerHTML =
+    '<button onclick="renderProList()" class="btn btn-ghost btn-sm">← All Files</button>';
+
+  // Sidebar client chip
+  var cn = document.getElementById('pro-client-name');
+  var cm = document.getElementById('pro-client-meta');
+  if(cn) cn.textContent = c.name;
+  if(cm) cm.textContent = c.losstype + ' · ' + c.insurer;
+
+  var FILE_NAV = [
+    { id:'pf-overview',   icon:'grid',   label:'Overview',             grp:null },
+    { id:'pf-emergency',  icon:'alert',  label:'Emergency Response',   grp:'CLAIM STEPS' },
+    { id:'pf-policy',     icon:'doc',    label:'Policy Review',        grp:null },
+    { id:'pf-report',     icon:'file2',  label:'Filed Claim',          grp:null },
+    { id:'pf-damage',     icon:isAuto?'car':'camera', label:isAuto?'Vehicle Damage':'Damage Documentation', grp:null },
+    !isAuto ? { id:'pf-contents', icon:'box', label:'Contents Inventory', grp:null } : null,
+    { id:'pf-contacts',   icon:'people', label:'Key Contacts',         grp:null },
+    { id:'pf-commlog',    icon:'log',    label:'Communication Log',    grp:null },
+    { id:'pf-contractors',icon:'tools',  label:isAuto?'Repair Shops':'Contractors', grp:null },
+    { id:'pf-estimates',  icon:'chart',  label:'Estimates',            grp:null },
+    { id:'pf-timeline',   icon:'clock',  label:'Deadlines',            grp:null },
+    { id:'pf-settlement', icon:'dollar', label:'Settlement',           grp:null },
+    { id:'pf-vault',      icon:'lock',   label:'Documents & Photos',   grp:'FILES' },
+    { id:'pf-notes',      icon:'edit',   label:'My Notes',             grp:null },
+    { id:'pf-messages',   icon:'chat',   label:'Message Client',       grp:'COMMUNICATE',
+      badge: f.messages.filter(function(m){return m.role==='client'&&!m.read;}).length || 0 },
+  ].filter(Boolean);
+
+  document.getElementById('pro-nav').innerHTML = FILE_NAV.map(function(item) {
+    var isActive = PRO_FILE_PAGE === item.id;
+    var grp = item.grp ? '<div style="font-size:9.5px;font-weight:700;color:#4A4540;letter-spacing:.08em;padding:10px 10px 3px;">'+item.grp+'</div>' : '';
+    return grp
+      +'<div style="display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:8px;cursor:pointer;font-size:13px;'
+      +(isActive?'background:rgba(255,255,255,.1);color:#fff;font-weight:600;':'color:#6b7f96;')
+      +'" data-pid="'+item.id+'" onclick="goProFilePage(this.dataset.pid)">'
+      +'<span style="flex-shrink:0;">'+svgIcon(item.icon,14,isActive?'#fff':'#6b7f96')+'</span>'
+      +'<span style="flex:1;">'+item.label+'</span>'
+      +(item.badge?'<span style="background:var(--teal);color:#fff;font-size:10px;font-weight:700;padding:1px 7px;border-radius:9999px;">'+item.badge+'</span>':'')
+      +'</div>';
+  }).join('');
+}
+
+function renderProFileView() {
+  buildProFileNav();
+  goProFilePage(PRO_FILE_PAGE);
+}
+
+function goProFilePage(pid) {
+  PRO_FILE_PAGE = pid;
+  buildProFileNav(); // update active highlight — no recursion
+
+  var f = PRO_FILES[PRO_ACTIVE_FILE];
+  var c = f.claim;
+
+  var pages = {
+    'pf-overview':   function(){ renderProFileOverview(f, c); },
+    'pf-emergency':  function(){ renderProReadOnly('Emergency Response', renderEmergencyReadOnly, c); },
+    'pf-policy':     function(){ renderProPolicyView(c); },
+    'pf-report':     function(){ renderProReportView(c); },
+    'pf-damage':     function(){ renderProDamageView(c); },
+    'pf-contents':   function(){ renderProContentsView(c); },
+    'pf-contacts':   function(){ renderProContactsView(f, c); },
+    'pf-commlog':    function(){ renderProCommLogView(f, c); },
+    'pf-contractors':function(){ renderProContractorsView(c); },
+    'pf-estimates':  function(){ renderProEstimatesView(c); },
+    'pf-timeline':   function(){ renderProTimelineView(c); },
+    'pf-settlement': function(){ renderProSettlementView(c); },
+    'pf-vault':      function(){ renderProVaultView(f, c); },
+    'pf-notes':      function(){ renderProNotesView(f); },
+    'pf-messages':   function(){ renderProMessagesView(f, c); },
+  };
+  if(pages[pid]) pages[pid]();
+}
+
+// ── Helper: render a status-only info page ────────────────────
+function proCard(title, bodyHtml) {
+  return '<div style="max-width:820px;margin:0 auto;"><div class="card"><div style="font-size:14px;font-weight:700;color:var(--ink);margin-bottom:14px;">'+title+'</div>'+bodyHtml+'</div></div>';
+}
+
+function proInfoRow(label, value, highlight) {
+  return '<div style="display:flex;gap:12px;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px;">'
+    +'<div style="color:var(--ink4);min-width:140px;flex-shrink:0;">'+label+'</div>'
+    +'<div style="color:'+(highlight||'var(--ink)')+';font-weight:500;">'+(value||'—')+'</div>'
+    +'</div>';
+}
+
+function proStepBadge(done) {
+  return done
+    ? '<span class="badge" style="background:var(--green-l);color:var(--green);">'+svgIcon('check',10,'var(--green)')+' Done</span>'
+    : '<span class="badge" style="background:var(--paper);color:var(--ink4);">Pending</span>';
+}
+
+// ── Overview ──────────────────────────────────────────────────
+function renderProFileOverview(f, c) {
+  var stepKeys = ['emergency','policy','report','damage','contacts','contents','commlog','contractors','estimates','timeline','settlement','analysis'];
+  var done = stepKeys.filter(function(k){ return c.steps && c.steps[k]; }).length;
+  var pct  = Math.round(done/stepKeys.length*100);
+
+  var stepsHtml = stepKeys.map(function(k) {
+    var labels = { emergency:'Emergency Response', policy:'Policy Review', report:'Filed Claim', damage:'Damage Documentation', contacts:'Key Contacts', contents:'Contents Inventory', commlog:'Communication Log', contractors:'Contractors', estimates:'Estimates', timeline:'Timeline', settlement:'Settlement', analysis:'Claim Analysis' };
+    var isDone = c.steps && c.steps[k];
+    return '<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);">'
+      +'<div style="font-size:13px;color:'+(isDone?'var(--ink)':'var(--ink4)')+';">'+labels[k]+'</div>'
+      +proStepBadge(isDone)
+      +'</div>';
+  }).join('');
+
+  var offerLast  = (c.offers||[]).filter(function(o){return o.type==='insurer_offer';}).slice(-1)[0];
+  var demandLast = (c.offers||[]).filter(function(o){return o.type==='your_demand';}).slice(-1)[0];
+  var totalPaid  = (c.offers||[]).filter(function(o){return o.type==='payment';}).reduce(function(s,o){return s+Number(o.amount||0);},0);
+
+  document.getElementById('pro-body').innerHTML =
+    '<div style="max-width:900px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:20px;">'
+
+    // Left: progress + steps
+    +'<div>'
+    +'<div class="card" style="margin-bottom:14px;background:linear-gradient(135deg,#ECFDF5,#CCFBF1);border-color:var(--teal-b);">'
+    +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">'
+    +'<div><div class="serif" style="font-size:17px;font-weight:700;color:var(--ink);">'+c.name+'</div>'
+    +'<div style="font-size:12.5px;color:var(--ink3);margin-top:2px;">'+c.losstype+' · '+c.insurer+'</div></div>'
+    +'<div style="text-align:right;"><div class="serif" style="font-size:30px;color:var(--teal);line-height:1;">'+pct+'<span style="font-size:16px;">%</span></div>'
+    +'<div style="font-size:11px;color:var(--ink4);">'+done+'/'+stepKeys.length+' done</div></div>'
+    +'</div>'
+    +'<div class="progress-track" style="height:7px;"><div class="progress-fill" style="width:'+pct+'%"></div></div>'
+    +'</div>'
+    +'<div class="card"><div style="font-size:13.5px;font-weight:700;color:var(--ink);margin-bottom:10px;">Checklist</div>'+stepsHtml+'</div>'
+    +'</div>'
+
+    // Right: claim details + settlement
+    +'<div>'
+    +'<div class="card" style="margin-bottom:14px;">'
+    +'<div style="font-size:13.5px;font-weight:700;color:var(--ink);margin-bottom:10px;">Claim Details</div>'
+    +proInfoRow('Address', c.address)
+    +proInfoRow('Insurer', c.insurer)
+    +proInfoRow('Claim #', c.claimno || 'Pending')
+    +proInfoRow('Date of Loss', fmtDate(c.dol))
+    +proInfoRow('Loss Type', c.losstype)
+    +proInfoRow('Claim Type', c.claimType === 'auto' ? 'Auto / Vehicle' : 'Property')
+    +(c.desc ? '<div style="font-size:12.5px;color:var(--ink3);padding:8px 0;line-height:1.6;border-top:1px solid var(--border);margin-top:4px;">'+c.desc+'</div>' : '')
+    +'</div>'
+
+    +'<div class="card" style="margin-bottom:14px;">'
+    +'<div style="font-size:13.5px;font-weight:700;color:var(--ink);margin-bottom:10px;">Settlement Status</div>'
+    +proInfoRow('Insurer\'s Latest Offer', offerLast ? '$'+Number(offerLast.amount).toLocaleString() : 'None yet', 'var(--amber)')
+    +proInfoRow('Client\'s Demand', demandLast ? '$'+Number(demandLast.amount).toLocaleString() : 'Not submitted', 'var(--teal)')
+    +proInfoRow('Total Paid', totalPaid > 0 ? '$'+totalPaid.toLocaleString() : '$0')
+    +(c.estimates ? proInfoRow('Estimate Gap', '$'+Math.abs(c.estimates.gap||0).toLocaleString(), 'var(--red)') : '')
+    +'</div>'
+
+    +'<div style="display:flex;gap:8px;">'
+    +'<button onclick="goProFilePage(\'pf-messages\')" class="btn btn-primary btn-sm">'+svgIcon('chat',13,'#fff')+' Message Client</button>'
+    +'<button onclick="goProFilePage(\'pf-notes\')" class="btn btn-ghost btn-sm">'+svgIcon('edit',13)+' Add Note</button>'
+    +'</div>'
+    +'</div>'
+    +'</div>';
+}
+
+// ── Policy view ───────────────────────────────────────────────
+function renderProPolicyView(c) {
+  var html = proInfoRow('Adjuster Name', c.adjusterName)
+    +proInfoRow('Adjuster Phone', c.adjusterPhone)
+    +proInfoRow('Adjuster Email', c.adjusterEmail)
+    +proInfoRow('Inspection Date', fmtDate(c.inspectionDate))
+    +'<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);display:flex;gap:8px;">'
+    +proStepBadge(c.steps && c.steps.policy)
+    +'</div>';
+  document.getElementById('pro-body').innerHTML = proCard('Policy & Adjuster Details', html);
+}
+
+// ── Report view ───────────────────────────────────────────────
+function renderProReportView(c) {
+  var checklist = c.reportChecklist || {};
+  var items = ['Called insurer and received claim number','Got adjuster name and direct contact info','Confirmed first inspection date in writing','Requested written acknowledgement of claim','Asked about Proof of Loss deadline','Asked about emergency mitigation costs coverage','Asked about Additional Living Expenses (ALE)','Noted time and name of every person spoken with','Confirmed no releases or waivers signed','Sent written follow-up email confirming call details'];
+  var html = '<div style="margin-bottom:14px;">'+proInfoRow('Claim #', c.claimno || 'Not assigned')
+    +proInfoRow('Adjuster', c.adjusterName || '—')
+    +proInfoRow('Step Status', '')+'</div>'
+    +'<div style="font-size:13px;font-weight:700;color:var(--ink2);margin-bottom:8px;letter-spacing:.02em;">FILING CHECKLIST</div>'
+    +items.map(function(item, i) {
+        var checked = checklist['rc'+(i+1)];
+        return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px;color:'+(checked?'var(--ink)':'var(--ink4)')+';"><span style="color:'+(checked?'var(--green)':'var(--border2)')+'">'+svgIcon(checked?'check':'info',13,checked?'var(--green)':'var(--border2)')+'</span>'+item+'</div>';
+      }).join('');
+  document.getElementById('pro-body').innerHTML = proCard('Filed Claim — Checklist', html);
+}
+
+// ── Damage view ───────────────────────────────────────────────
+function renderProDamageView(c) {
+  var isAuto = c.claimType === 'auto';
+  var html = '';
+
+  if(isAuto) {
+    var a = c.auto || {};
+    html += proInfoRow('Police Report #', a.policeReport)
+      +proInfoRow('Location', a.location)
+      +proInfoRow('Vehicle', c.address)
+      +proInfoRow('Damage Severity', a.severity)
+      +proInfoRow('Other Driver', a.otherDriver ? a.otherDriver.name : '—')
+      +proInfoRow('Other Driver Phone', a.otherDriver ? a.otherDriver.phone : '—')
+      +proInfoRow('Other Driver Insurer', a.otherDriver ? a.otherDriver.insurer : '—')
+      +(a.damageDesc ? '<div style="font-size:13px;color:var(--ink2);padding:10px 0;border-top:1px solid var(--border);margin-top:6px;line-height:1.65;">'+a.damageDesc+'</div>' : '')
+      +(a.witnesses && a.witnesses.length ? '<div style="margin-top:10px;font-size:13px;font-weight:700;color:var(--ink2);">Witnesses</div>'
+        +a.witnesses.map(function(w){ return '<div style="font-size:13px;color:var(--ink3);padding:4px 0;">'+w.name+(w.phone?' · '+w.phone:'')+'</div>'; }).join('') : '');
+  } else {
+    var rooms = c.damages || [];
+    if(!rooms.length) { html = '<div style="color:var(--ink4);text-align:center;padding:32px;font-size:13px;">No rooms documented yet.</div>'; }
+    else {
+      html = rooms.map(function(r) {
+        var photoCount = (r.photos||[]).length;
+        return '<div style="padding:10px 0;border-bottom:1px solid var(--border);">'
+          +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">'
+          +'<div style="font-size:14px;font-weight:700;color:var(--ink);">'+r.name+'</div>'
+          +'<span class="badge" style="background:var(--teal-l);color:var(--teal);">'+photoCount+' photo'+(photoCount!==1?'s':'')+'</span>'
+          +'</div>'
+          +(r.note ? '<div style="font-size:12.5px;color:var(--ink3);line-height:1.55;">'+r.note+'</div>' : '<div style="font-size:12px;color:var(--ink4);">No notes.</div>')
+          +(r.photos && r.photos.length ? '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:8px;margin-top:8px;">'
+            +r.photos.map(function(p){ return p.dataUrl ? '<div style="aspect-ratio:1;border-radius:8px;overflow:hidden;border:1px solid var(--border);cursor:pointer;" onclick="window.open(\''+p.dataUrl+'\',\'_blank\')"><img src="'+p.dataUrl+'" style="width:100%;height:100%;object-fit:cover;"></div>' : ''; }).join('')
+            +'</div>' : '')
+          +'</div>';
+      }).join('');
+    }
+  }
+  document.getElementById('pro-body').innerHTML = proCard(isAuto ? 'Vehicle Damage' : 'Damage Documentation', html);
+}
+
+// ── Contents view ─────────────────────────────────────────────
+function renderProContentsView(c) {
+  var items = c.contents || [];
+  if(!items.length) {
+    document.getElementById('pro-body').innerHTML = proCard('Contents Inventory', '<div style="color:var(--ink4);text-align:center;padding:32px;font-size:13px;">No contents inventory completed yet.</div>');
+    return;
+  }
+  var total = items.reduce(function(s,it){return s+(Number(it.total_price)||0);},0);
+  var rows = items.map(function(it) {
+    return '<div style="display:flex;gap:0;border:1px solid var(--border);border-radius:7px;font-size:12.5px;margin-bottom:4px;overflow:hidden;">'
+      +'<div style="flex:2.5;padding:7px 10px;font-weight:500;">'+it.item+(it.brand?' <span style="color:var(--ink4);font-weight:400;">· '+it.brand+'</span>':'')+'</div>'
+      +'<div style="flex:.5;padding:7px 6px;text-align:center;border-left:1px solid var(--border);color:var(--ink3);">×'+it.qty+'</div>'
+      +'<div style="flex:1;padding:7px 8px;text-align:right;border-left:1px solid var(--border);font-weight:600;color:var(--teal);">'+(it.currency==='CAD'?'CA$':'$')+Math.round(it.total_price||0).toLocaleString()+'</div>'
+      +'</div>';
+  }).join('');
+  var html = rows+'<div style="display:flex;justify-content:space-between;padding:10px 12px;background:var(--ink);border-radius:8px;margin-top:8px;">'
+    +'<div style="font-size:13px;font-weight:700;color:#fff;">'+items.length+' items</div>'
+    +'<div style="font-size:15px;font-weight:700;color:var(--teal-b);">$'+Math.round(total).toLocaleString()+'</div>'
+    +'</div>';
+  document.getElementById('pro-body').innerHTML = proCard('Contents Inventory', html);
+}
+
+// ── Contacts view ─────────────────────────────────────────────
+function renderProContactsView(f, c) {
+  var contacts = c.contacts || [];
+  var roleColors = {'Insurer Adjuster':'var(--amber)','Public Adjuster':'var(--teal)','Insurance Attorney':'var(--ink2)','Contractor':'var(--green)','Repair Shop':'var(--green)','Other Driver':'var(--red)','Witness':'var(--ink3)','Other':'var(--ink4)'};
+  var html = contacts.length
+    ? contacts.map(function(ct) {
+        var col = roleColors[ct.role] || 'var(--ink4)';
+        return '<div style="padding:10px 0;border-bottom:1px solid var(--border);">'
+          +'<div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;">'
+          +'<span class="badge" style="background:'+col+'15;color:'+col+';">'+ct.role+'</span>'
+          +'<div style="font-size:13.5px;font-weight:700;color:var(--ink);">'+ct.name+'</div>'
+          +(ct.company?'<div style="font-size:12px;color:var(--ink4);">'+ct.company+'</div>':'')
+          +'</div>'
+          +'<div style="font-size:12.5px;color:var(--ink3);display:flex;gap:12px;">'
+          +(ct.phone?'<span>'+ct.phone+'</span>':'')
+          +(ct.email?'<span>'+ct.email+'</span>':'')
+          +'</div>'
+          +(ct.notes?'<div style="font-size:12px;color:var(--ink4);margin-top:3px;">'+ct.notes+'</div>':'')
+          +'</div>';
+      }).join('')
+    : '<div style="color:var(--ink4);text-align:center;padding:32px;font-size:13px;">No contacts added yet.</div>';
+  document.getElementById('pro-body').innerHTML = proCard('Key Contacts', html);
+}
+
+// ── Comm Log view ─────────────────────────────────────────────
+function renderProCommLogView(f, c) {
+  var log = c.commLog || [];
+  var typeColors = { call:'var(--teal)', email:'var(--ink2)', letter:'var(--amber)', text:'var(--green)', meeting:'var(--ink3)', other:'var(--ink4)' };
+  var html = log.length
+    ? log.slice().reverse().map(function(e) {
+        var col = typeColors[e.type] || 'var(--ink4)';
+        return '<div style="padding:10px 0;border-bottom:1px solid var(--border);">'
+          +'<div style="display:flex;gap:8px;align-items:flex-start;">'
+          +'<div style="width:24px;height:24px;border-radius:7px;background:'+col+'18;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;">'+svgIcon('phone',12,col)+'</div>'
+          +'<div>'
+          +'<div style="font-size:13px;font-weight:600;color:var(--ink);">'+e.with+'</div>'
+          +'<div style="font-size:11.5px;color:var(--ink4);">'+fmtDate(e.date)+' '+e.time+' · '+e.type+'</div>'
+          +'<div style="font-size:12.5px;color:var(--ink2);margin-top:4px;line-height:1.55;">'+e.summary+'</div>'
+          +(e.result?'<div style="font-size:12px;color:var(--teal);margin-top:3px;">✓ '+e.result+'</div>':'')
+          +(e.followup?'<div style="font-size:12px;color:var(--amber);margin-top:2px;">⚠ '+e.followup+'</div>':'')
+          +'</div></div></div>';
+      }).join('')
+    : '<div style="color:var(--ink4);text-align:center;padding:32px;font-size:13px;">No communication log entries yet.</div>';
+  document.getElementById('pro-body').innerHTML = proCard('Communication Log', html);
+}
+
+// ── Contractors view ──────────────────────────────────────────
+function renderProContractorsView(c) {
+  var ctrs = c.contractors || [];
+  var statusColors = { hired:'var(--teal)', quoted:'var(--amber)', contacted:'var(--ink3)', rejected:'var(--red)' };
+  var html = ctrs.length
+    ? ctrs.map(function(ct) {
+        var col = statusColors[ct.status] || 'var(--ink4)';
+        return '<div style="padding:10px 0;border-bottom:1px solid var(--border);">'
+          +'<div style="display:flex;justify-content:space-between;align-items:flex-start;">'
+          +'<div><div style="font-size:13.5px;font-weight:700;color:var(--ink);">'+ct.name+'</div>'
+          +'<div style="display:flex;gap:8px;margin-top:4px;">'
+          +'<span class="badge" style="background:'+col+'15;color:'+col+';">'+ct.status+'</span>'
+          +(ct.license?'<span style="font-size:11.5px;color:var(--green);">✓ Licensed</span>':'<span style="font-size:11.5px;color:var(--amber);">⚠ Unverified</span>')
+          +'</div>'
+          +(ct.notes?'<div style="font-size:12px;color:var(--ink4);margin-top:4px;">'+ct.notes+'</div>':'')
+          +'</div>'
+          +(ct.estimate?'<div style="text-align:right;"><div style="font-size:11px;color:var(--ink4);">Estimate</div><div style="font-size:16px;font-weight:700;color:var(--teal);font-family:\'Lora\',serif;">$'+Number(ct.estimate).toLocaleString()+'</div></div>':'')
+          +'</div></div>';
+      }).join('')
+    : '<div style="color:var(--ink4);text-align:center;padding:32px;font-size:13px;">No contractors added yet.</div>';
+  document.getElementById('pro-body').innerHTML = proCard(c.claimType==='auto'?'Repair Shops':'Contractors', html);
+}
+
+// ── Estimates view ────────────────────────────────────────────
+function renderProEstimatesView(c) {
+  var est = c.estimates;
+  if(!est) { document.getElementById('pro-body').innerHTML = proCard('Estimates', '<div style="color:var(--ink4);text-align:center;padding:32px;font-size:13px;">No estimates uploaded yet.</div>'); return; }
+  var html = '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px;">'
+    +[['Insurer Estimate', est.insurerTotal, 'var(--amber)'],['Contractor Estimate', est.contractorTotal, 'var(--teal)'],['Gap', Math.abs(est.gap||0), 'var(--red)']].map(function(col){
+        return '<div style="background:var(--paper);border-radius:10px;padding:14px;text-align:center;border:1px solid var(--border);">'
+          +'<div style="font-size:11.5px;color:var(--ink4);margin-bottom:4px;">'+col[0]+'</div>'
+          +'<div style="font-family:\'Lora\',serif;font-size:22px;font-weight:700;color:'+col[2]+';line-height:1;">$'+Number(col[1]).toLocaleString()+'</div>'
+          +'</div>';
+      }).join('')
+    +'</div>'
+    +(est.contractorName ? proInfoRow('Contractor', est.contractorName) : '');
+  document.getElementById('pro-body').innerHTML = proCard('Estimates', html);
+}
+
+// ── Timeline view ─────────────────────────────────────────────
+function renderProTimelineView(c) {
+  var tl = c.timeline || [];
+  if(!tl.length) { document.getElementById('pro-body').innerHTML = proCard('Deadlines & Timeline', '<div style="color:var(--ink4);text-align:center;padding:32px;font-size:13px;">No timeline set.</div>'); return; }
+  var rows = tl.map(function(t) {
+    var days = daysUntil(t.date);
+    var done    = t.status === 'done';
+    var overdue = !done && days !== null && days < 0;
+    var urgent  = !done && days !== null && days >= 0 && days <= 14;
+    var color   = done ? 'var(--green)' : overdue ? 'var(--red)' : urgent ? 'var(--amber)' : 'var(--ink4)';
+    var badge   = done ? 'Done' : overdue ? 'OVERDUE' : days === 0 ? 'TODAY' : days !== null && days > 0 ? days + 'd' : '';
+    return '<div style="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);align-items:flex-start;">'
+      +'<div style="width:10px;height:10px;border-radius:50%;background:'+color+';flex-shrink:0;margin-top:4px;"></div>'
+      +'<div style="flex:1;"><div style="font-size:13px;font-weight:600;color:var(--ink);">'+t.label+'</div>'
+      +'<div style="font-size:12px;color:var(--ink4);">'+fmtDate(t.date)+'</div>'
+      +(t.note?'<div style="font-size:12px;color:var(--ink3);margin-top:2px;">'+t.note+'</div>':'')
+      +'</div>'
+      +(badge?'<span class="badge" style="background:'+color+'18;color:'+color+';flex-shrink:0;">'+badge+'</span>':'')
+      +'</div>';
+  }).join('');
+  document.getElementById('pro-body').innerHTML = proCard('Deadlines & Timeline', rows);
+}
+
+// ── Settlement view ───────────────────────────────────────────
+function renderProSettlementView(c) {
+  var offers = c.offers || [];
+  if(!offers.length) { document.getElementById('pro-body').innerHTML = proCard('Settlement Tracker', '<div style="color:var(--ink4);text-align:center;padding:32px;font-size:13px;">No offers or payments logged yet.</div>'); return; }
+  var typeLabels = { insurer_offer:'Insurer Offer', your_demand:'Client Demand', payment:'Payment Received', counter:'Counter Offer', denial:'Denial', other:'Other' };
+  var typeColors = { insurer_offer:'var(--amber)', your_demand:'var(--teal)', payment:'var(--green)', counter:'var(--ink2)', denial:'var(--red)', other:'var(--ink4)' };
+  var totalPaid = offers.filter(function(o){return o.type==='payment';}).reduce(function(s,o){return s+Number(o.amount||0);},0);
+  var html = offers.slice().reverse().map(function(o) {
+    var col = typeColors[o.type] || 'var(--ink4)';
+    return '<div style="padding:10px 0;border-bottom:1px solid var(--border);">'
+      +'<div style="display:flex;justify-content:space-between;align-items:flex-start;">'
+      +'<div><span class="badge" style="background:'+col+'15;color:'+col+';">'+typeLabels[o.type]+'</span>'
+      +'<div style="font-size:17px;font-weight:700;color:var(--ink);margin-top:4px;font-family:\'Lora\',serif;">$'+Number(o.amount||0).toLocaleString()+'</div>'
+      +'<div style="font-size:11.5px;color:var(--ink4);">'+fmtDate(o.date)+(o.ref?' · '+o.ref:'')+'</div>'
+      +(o.notes?'<div style="font-size:12.5px;color:var(--ink3);margin-top:4px;">'+o.notes+'</div>':'')
+      +'</div></div></div>';
+  }).join('');
+  if(totalPaid>0) html += '<div style="background:var(--green-l);border-radius:8px;padding:10px 14px;margin-top:10px;font-size:13px;color:var(--green);font-weight:600;">Total Paid to Date: $'+totalPaid.toLocaleString()+'</div>';
+  document.getElementById('pro-body').innerHTML = proCard('Settlement Tracker', html);
+}
+
+// ── Vault view ────────────────────────────────────────────────
+function renderProVaultView(f, c) {
+  var docs   = (c.vault && c.vault.docs)   || [];
+  var photos = (c.vault && c.vault.photos) || [];
+  var total  = docs.length + photos.length;
+
+  var docTypes = [
+    { id:'pro-pol',  label:'Policy / Declarations',   icon:'doc',    color:'var(--teal)',  accept:'.pdf,image/*' },
+    { id:'pro-est',  label:'Insurer Estimate',         icon:'chart',  color:'var(--amber)', accept:'.pdf,image/*' },
+    { id:'pro-ctr',  label:'Contractor Estimate',      icon:'tools',  color:'var(--green)', accept:'.pdf,image/*' },
+    { id:'pro-den',  label:'Denial / ROR Letter',      icon:'alert',  color:'var(--red)',   accept:'.pdf,image/*' },
+    { id:'pro-rep',  label:'Engineer / Expert Report', icon:'brain',  color:'var(--teal)',  accept:'.pdf,image/*' },
+    { id:'pro-cor',  label:'Correspondence',           icon:'doc',    color:'var(--ink2)',  accept:'.pdf,image/*' },
+    { id:'pro-misc', label:'Other Document',           icon:'upload', color:'var(--ink4)',  accept:'.pdf,image/*,.doc,.docx' },
+  ];
+
+  var uploadZones = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:10px;margin-bottom:4px;">'
+    + docTypes.map(function(dt) {
+        var existing = docs.filter(function(d){ return d.docTypeId === dt.id; });
+        var hasFile  = existing.length > 0;
+        var borderC  = hasFile ? dt.color : 'var(--border2)';
+        var bgC      = hasFile ? 'rgba(0,0,0,.015)' : 'var(--cream)';
+        return '<div onclick="triggerProUpload(\'' + dt.id + '\')" '
+          + 'style="border:2px dashed ' + borderC + ';border-radius:10px;padding:14px 10px;text-align:center;cursor:pointer;background:' + bgC + ';transition:all .15s;" '
+          + 'onmouseover="this.style.borderColor=\'' + dt.color + '\';this.style.background=\'var(--paper)\'" '
+          + 'onmouseout="this.style.borderColor=\'' + borderC + '\';this.style.background=\'' + bgC + '\'">'
+          + '<div style="margin-bottom:6px;">' + 'ICON_' + dt.icon + '_' + (hasFile ? dt.color : 'var(--ink4)') + '</div>'
+          + '<div style="font-size:12px;font-weight:600;color:' + (hasFile ? dt.color : 'var(--ink3)') + ';">' + dt.label + '</div>'
+          + (hasFile
+              ? '<div style="font-size:11px;color:var(--green);margin-top:3px;">&#x2713; ' + existing.length + ' file' + (existing.length !== 1 ? 's' : '') + '</div>'
+              : '<div style="font-size:10.5px;color:var(--ink4);margin-top:3px;">Click to upload</div>')
+          + '<input type="file" id="' + dt.id + '" data-doctype="' + dt.label + '" data-doctypeid="' + dt.id + '" '
+          + 'accept="' + dt.accept + '" style="display:none;" multiple onchange="handleProFileUpload(this)">'
+          + '</div>';
+      }).join('')
+    + '</div>';
+
+  // Replace ICON_ placeholders with actual svgIcon calls — build using JS string concat
+  // (We cannot call svgIcon inside the Python string, so we use a runtime replacement approach)
+  // Instead we build the zones in pure JS below via a helper:
+
+  var docRows = docs.length ? docs.map(function(d) {
+    var fd = d.storeKey ? FILE_STORE[d.storeKey] : null;
+    var byPro = d.uploadedBy === 'Professional';
+    return '<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);">'
+      + '<div style="width:34px;height:34px;background:var(--teal-l);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">' + svgIcon('doc',15,'var(--teal)') + '</div>'
+      + '<div style="flex:1;min-width:0;">'
+      + '<div style="font-size:13px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + d.name + '</div>'
+      + '<div style="font-size:11.5px;color:var(--ink4);">' + d.type
+        + (byPro ? ' &nbsp;<span style="background:var(--amber-l);color:var(--amber);border-radius:4px;padding:1px 6px;font-size:10.5px;font-weight:700;">PRO</span>' : ' &nbsp;<span style="background:var(--teal-l);color:var(--teal);border-radius:4px;padding:1px 6px;font-size:10.5px;font-weight:700;">CLIENT</span>')
+        + ' &nbsp;&middot;&nbsp; ' + d.uploaded + '</div>'
+      + '</div>'
+      + '<div style="display:flex;gap:6px;flex-shrink:0;">'
+      + (fd ? '<button onclick="previewFile(\'' + d.storeKey + '\')" class="btn btn-ghost btn-sm" style="font-size:12px;">View</button>' : '')
+      + (fd ? '<a href="' + fd.dataUrl + '" download="' + d.name + '" class="btn btn-ghost btn-sm" style="font-size:12px;">' + svgIcon('download',11) + ' Save</a>' : '<span style="font-size:11px;color:var(--ink4);">Client upload</span>')
+      + (byPro ? '<button onclick="removeProDoc(\'' + d.storeKey + '\')" class="btn btn-ghost btn-sm" style="color:var(--red);border-color:#fee2e2;" title="Remove">' + svgIcon('trash',11,'var(--red)') + '</button>' : '')
+      + '</div>'
+      + '</div>';
+  }).join('') : '<div style="color:var(--ink4);font-size:13px;padding:16px 0;text-align:center;">No documents yet — use the upload zones above.</div>';
+
+  var photoGrid = buildPhotoGrid(photos, null);
+  var proUploads    = docs.filter(function(d){ return d.uploadedBy === 'Professional'; }).length;
+  var clientUploads = docs.filter(function(d){ return d.uploadedBy !== 'Professional'; }).length;
+
+  var zonesHtml = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:10px;margin-bottom:4px;">'
+    + docTypes.map(function(dt) {
+        var existing = docs.filter(function(d){ return d.docTypeId === dt.id; });
+        var hasFile  = existing.length > 0;
+        var borderC  = hasFile ? dt.color : 'var(--border2)';
+        var bgC      = hasFile ? 'rgba(0,0,0,.015)' : 'var(--cream)';
+        return '<div onclick="triggerProUpload(\'' + dt.id + '\')" '
+          + 'style="border:2px dashed ' + borderC + ';border-radius:10px;padding:14px 10px;text-align:center;cursor:pointer;background:' + bgC + ';transition:all .15s;" '
+          + 'onmouseover="this.style.borderColor=\'' + dt.color + '\';this.style.background=\'var(--paper)\'" '
+          + 'onmouseout="this.style.borderColor=\'' + borderC + '\';this.style.background=\'' + bgC + '\'">'
+          + '<div style="margin-bottom:6px;">' + svgIcon(dt.icon, 20, hasFile ? dt.color : 'var(--ink4)') + '</div>'
+          + '<div style="font-size:12px;font-weight:600;color:' + (hasFile ? dt.color : 'var(--ink3)') + ';">' + dt.label + '</div>'
+          + (hasFile
+              ? '<div style="font-size:11px;color:var(--green);margin-top:3px;">&#x2713; ' + existing.length + ' file' + (existing.length !== 1 ? 's' : '') + '</div>'
+              : '<div style="font-size:10.5px;color:var(--ink4);margin-top:3px;">Click to upload</div>')
+          + '<input type="file" id="' + dt.id + '" data-doctype="' + dt.label + '" data-doctypeid="' + dt.id + '" '
+          + 'accept="' + dt.accept + '" style="display:none;" multiple onchange="handleProFileUpload(this)">'
+          + '</div>';
+      }).join('')
+    + '</div>';
+
+  document.getElementById('pro-body').innerHTML =
+    '<div style="max-width:860px;margin:0 auto;display:flex;flex-direction:column;gap:16px;">'
+
+    + '<div class="card-flat" style="display:grid;grid-template-columns:repeat(4,1fr);gap:0;">'
+    + [['Total Files',total],['Documents',docs.length],['Pro Uploads',proUploads],['Client Uploads',clientUploads+photos.length]].map(function(p,i){
+        return '<div style="text-align:center;padding:12px;' + (i<3?'border-right:1px solid var(--border);':'') + '">'
+          + '<div style="font-family:\'Lora\',serif;font-size:26px;color:var(--teal);line-height:1;">' + p[1] + '</div>'
+          + '<div style="font-size:11.5px;color:var(--ink4);margin-top:2px;">' + p[0] + '</div>'
+          + '</div>';
+      }).join('')
+    + '</div>'
+
+    + '<div class="card">'
+    + '<div style="font-size:14px;font-weight:700;color:var(--ink);margin-bottom:14px;">' + svgIcon('upload',14,'var(--teal)') + ' Upload Documents</div>'
+    + zonesHtml
+    + '<div style="font-size:11.5px;color:var(--ink4);margin-top:10px;">' + svgIcon('info',11,'var(--ink4)') + ' Files you upload are tagged as Professional and visible to both you and the client in their vault.</div>'
+    + '</div>'
+
+    + '<div class="card">'
+    + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">'
+    + '<div style="font-size:14px;font-weight:700;color:var(--ink);">' + svgIcon('doc',14,'var(--teal)') + ' All Documents</div>'
+    + (docs.filter(function(d){ return !d.docTypeId; }).length
+        ? '<button onclick="autoSortClientDocs()" class="btn btn-ghost btn-sm" style="font-size:12px;color:var(--teal);border-color:var(--teal-b);">' + svgIcon('brain',11,'var(--teal)') + ' Auto-sort untagged</button>'
+        : '')
+    + '</div>'
+    + docRows
+    + '</div>'
+
+    + '<div class="card">'
+    + '<div style="font-size:14px;font-weight:700;color:var(--ink);margin-bottom:10px;">' + svgIcon('camera',14,'var(--teal)') + ' Damage Photos</div>'
+    + (photos.length ? photoGrid : '<div style="color:var(--ink4);font-size:13px;padding:12px 0;text-align:center;">No photos uploaded by client yet.</div>')
+    + '</div>'
+    + '</div>';
+}
+
+function triggerProUpload(id) {
+  var el = document.getElementById(id);
+  if(el) el.click();
+}
+
+function removeProDoc(storeKey) {
+  var f = PRO_FILES[PRO_ACTIVE_FILE];
+  if(!f || !storeKey) return;
+  f.claim.vault.docs = (f.claim.vault.docs||[]).filter(function(d){ return d.storeKey !== storeKey; });
+  delete FILE_STORE[storeKey];
+  saveProFileToDB(PRO_ACTIVE_FILE);
+  toast('Document removed');
+  renderProVaultView(f, f.claim);
+}
+
+// ── Doc type definitions (shared by keyword matcher + AI classifier) ──
+var PRO_DOC_TYPES = [
+  { id:'pro-pol',  label:'Policy / Declarations',   keywords:['policy','declaration','decl','coverage','endorsement','schedule of insurance'] },
+  { id:'pro-est',  label:'Insurer Estimate',         keywords:['xactimate','adjuster estimate','insurer estimate','claim estimate','scope of loss','xact','insurance estimate','adjuster scope'] },
+  { id:'pro-ctr',  label:'Contractor Estimate',      keywords:['contractor','repair estimate','restoration','remediation','mitigation','quote','proposal','bid','construction estimate'] },
+  { id:'pro-den',  label:'Denial / ROR Letter',      keywords:['denial','denied','reservation of rights','ror','coverage position','declination','coverage dispute','coverage letter'] },
+  { id:'pro-rep',  label:'Engineer / Expert Report', keywords:['engineering','engineer','inspection report','expert report','hygienist','consultant report','forensic','cause of loss','origin'] },
+  { id:'pro-cor',  label:'Correspondence',           keywords:['letter','correspondence','email','notice','demand','certified','response','communication'] },
+];
+
+// ── Keyword-based classifier (runs on filename, instant) ──────
+function classifyDocByKeyword(filename) {
+  var name = filename.toLowerCase().replace(/[_\-\.]/g,' ');
+  for (var i = 0; i < PRO_DOC_TYPES.length; i++) {
+    var dt = PRO_DOC_TYPES[i];
+    for (var j = 0; j < dt.keywords.length; j++) {
+      if (name.indexOf(dt.keywords[j]) >= 0) {
+        return { id: dt.id, label: dt.label };
+      }
+    }
+  }
+  return null;
+}
+
+// ── AI classifier — filename + first ~800 chars of text content ─
+async function classifyDocByAI(filename, textSnippet) {
+  var typeList = PRO_DOC_TYPES.map(function(dt){ return dt.id + ': ' + dt.label; }).join('\n');
+  var prompt = 'You are classifying an insurance claim document for a professional claim file.\n\n'
+    + 'Document filename: ' + filename + '\n'
+    + (textSnippet ? 'Document text (first excerpt):\n' + textSnippet.slice(0,800) + '\n\n' : '\n')
+    + 'Classify this document into exactly one of these categories:\n' + typeList + '\n'
+    + 'If none fit well, reply with: pro-misc: Other Document\n\n'
+    + 'Reply with ONLY the category id and label in this exact format: id: label\n'
+    + 'Example: pro-est: Insurer Estimate';
+
+  try {
+    var res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 60,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    var data = await res.json();
+    var text = (data.content && data.content[0] && data.content[0].text || '').trim();
+    var match = text.match(/^(pro-[a-z]+):\s*(.+)$/);
+    if (match) return { id: match[1], label: match[2].trim() };
+  } catch(e) { console.warn('AI classify failed:', e.message); }
+  return { id: 'pro-misc', label: 'Other Document' };
+}
+
+// ── Extract plain text snippet from a base64 file (PDF text layer or filename fallback) ──
+function extractTextSnippet(data) {
+  // For text-based PDFs that have a text layer, try to pull readable ASCII
+  try {
+    if (data.mt === 'application/pdf' && data.b64) {
+      var raw = atob(data.b64.slice(0, 8000));
+      // Extract printable ASCII runs > 4 chars
+      var runs = raw.match(/[ -~]{4,}/g) || [];
+      var text = runs.join(' ').replace(/\s+/g,' ').slice(0,800);
+      if (text.length > 40) return text;
+    }
+  } catch(e) {}
+  return '';
+}
+
+// ── Show category confirmation modal ─────────────────────────
+function showCategoryConfirm(filename, detectedId, detectedLabel, onAccept, onReject) {
+  var existing = document.getElementById('cat-confirm-overlay');
+  if (existing) existing.remove();
+
+  var overlay = document.createElement('div');
+  overlay.id = 'cat-confirm-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(28,26,23,.4);z-index:9000;display:flex;align-items:flex-end;justify-content:center;padding:0 0 32px;animation:fadeIn .15s ease;';
+
+  var dt = PRO_DOC_TYPES.find(function(d){ return d.id === detectedId; }) || { id:'pro-misc', label:detectedLabel };
+  var colors = {
+    'pro-pol':'var(--teal)', 'pro-est':'var(--amber)', 'pro-ctr':'var(--green)',
+    'pro-den':'var(--red)',  'pro-rep':'var(--teal)',   'pro-cor':'var(--ink2)', 'pro-misc':'var(--ink4)'
+  };
+  var col = colors[detectedId] || 'var(--teal)';
+
+  overlay.innerHTML =
+    '<div style="background:var(--white);border-radius:16px;box-shadow:var(--shadow2);width:100%;max-width:440px;padding:20px;animation:fadeUp .2s cubic-bezier(.16,1,.3,1);">'
+    + '<div style="font-size:11px;font-weight:700;color:var(--ink4);letter-spacing:.06em;margin-bottom:8px;">AUTO-DETECTED CATEGORY</div>'
+    + '<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">'
+    + '<div style="width:40px;height:40px;border-radius:10px;background:' + col + '18;display:flex;align-items:center;justify-content:center;flex-shrink:0;">'
+    + svgIcon('doc', 18, col) + '</div>'
+    + '<div>'
+    + '<div style="font-size:14px;font-weight:700;color:var(--ink);">' + detectedLabel + '</div>'
+    + '<div style="font-size:12px;color:var(--ink4);margin-top:2px;max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + filename + '</div>'
+    + '</div></div>'
+    + '<div style="font-size:13px;color:var(--ink3);margin-bottom:16px;">File this document under <strong>' + detectedLabel + '</strong>?</div>'
+    + '<div style="display:flex;gap:8px;">'
+    + '<button id="cat-confirm-yes" class="btn btn-primary" style="flex:1;">Yes, use this category</button>'
+    + '<button id="cat-confirm-no" class="btn btn-ghost" style="flex:1;">No, keep as Other</button>'
+    + '</div>'
+    + '</div>';
+
+  document.body.appendChild(overlay);
+
+  document.getElementById('cat-confirm-yes').onclick = function() {
+    overlay.remove();
+    onAccept({ id: detectedId, label: detectedLabel });
+  };
+  document.getElementById('cat-confirm-no').onclick = function() {
+    overlay.remove();
+    onReject();
+  };
+}
+
+// ── Auto-sort existing untagged client docs ───────────────────
+async function autoSortClientDocs() {
+  var f = PRO_FILES[PRO_ACTIVE_FILE];
+  if (!f) return;
+  var untagged = (f.claim.vault.docs || []).filter(function(d){ return !d.docTypeId; });
+  if (!untagged.length) { toast('All documents are already categorized'); return; }
+
+  toast('Analysing ' + untagged.length + ' document' + (untagged.length!==1?'s':'') + '...');
+
+  var results = [];
+  for (var i = 0; i < untagged.length; i++) {
+    var d = untagged[i];
+    var kw = classifyDocByKeyword(d.name);
+    var detected = kw;
+    if (!kw) {
+      var fd = d.storeKey ? FILE_STORE[d.storeKey] : null;
+      var snippet = fd ? extractTextSnippet(fd) : '';
+      detected = await classifyDocByAI(d.name, snippet);
+    }
+    if (detected && detected.id !== 'pro-misc') {
+      results.push({ doc: d, detected: detected });
+    }
+  }
+
+  if (!results.length) { toast('Could not auto-classify any documents — please categorize manually'); return; }
+
+  // Show single bulk confirmation
+  var existing = document.getElementById('cat-confirm-overlay');
+  if (existing) existing.remove();
+
+  var overlay = document.createElement('div');
+  overlay.id = 'cat-confirm-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(28,26,23,.4);z-index:9000;display:flex;align-items:center;justify-content:center;padding:20px;animation:fadeIn .15s ease;';
+
+  var rows = results.map(function(r) {
+    return '<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px;">'
+      + '<div style="flex:1;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + r.doc.name + '</div>'
+      + '<div style="flex-shrink:0;"><span style="background:var(--teal-l);color:var(--teal);border-radius:6px;padding:2px 8px;font-size:11.5px;font-weight:600;">' + r.detected.label + '</span></div>'
+      + '</div>';
+  }).join('');
+
+  overlay.innerHTML =
+    '<div style="background:var(--white);border-radius:16px;box-shadow:var(--shadow2);width:100%;max-width:500px;max-height:80vh;overflow-y:auto;animation:fadeUp .2s cubic-bezier(.16,1,.3,1);">'
+    + '<div style="padding:18px 20px 14px;border-bottom:1.5px solid var(--border);">'
+    + '<div style="font-size:15px;font-weight:700;color:var(--ink);">Auto-Sort Results</div>'
+    + '<div style="font-size:12.5px;color:var(--ink4);margin-top:3px);">Apply these categories to ' + results.length + ' document' + (results.length!==1?'s':'') + '?</div>'
+    + '</div>'
+    + '<div style="padding:12px 20px;">' + rows + '</div>'
+    + '<div style="display:flex;gap:8px;padding:14px 20px;border-top:1.5px solid var(--border);background:var(--paper);border-radius:0 0 16px 16px;">'
+    + '<button id="bulk-confirm-yes" class="btn btn-primary" style="flex:1;">Apply All</button>'
+    + '<button id="bulk-confirm-no" class="btn btn-ghost">Cancel</button>'
+    + '</div>'
+    + '</div>';
+
+  document.body.appendChild(overlay);
+
+  document.getElementById('bulk-confirm-yes').onclick = function() {
+    overlay.remove();
+    results.forEach(function(r) {
+      r.doc.docTypeId = r.detected.id;
+      r.doc.type      = r.detected.label;
+    });
+    saveProFileToDB(PRO_ACTIVE_FILE);
+    toast('\u2713 ' + results.length + ' document' + (results.length!==1?'s':'') + ' categorized');
+    renderProVaultView(f, f.claim);
+  };
+  document.getElementById('bulk-confirm-no').onclick = function() { overlay.remove(); };
+}
+
+// ── Main upload handler ───────────────────────────────────────
+function handleProFileUpload(input) {
+  var f = PRO_FILES[PRO_ACTIVE_FILE];
+  if(!f) return;
+  var files = Array.from(input.files);
+  if(!files.length) return;
+  var explicitType   = input.dataset.doctype   || '';
+  var explicitTypeId = input.dataset.doctypeid || '';
+  input.value = '';
+
+  files.forEach(function(file) {
+    readFile(file).then(async function(data) {
+      var key = 'pro-upload-' + Date.now() + '-' + Math.random().toString(36).slice(2,7);
+      FILE_STORE[key] = data;
+      if(!f.claim.vault) f.claim.vault = { docs:[], photos:[] };
+
+      // If uploaded via a specific zone (not "Other"), use that type directly
+      if (explicitTypeId && explicitTypeId !== 'pro-misc') {
+        var docEntry = {
+          name: file.name, type: explicitType, docTypeId: explicitTypeId,
+          uploadedBy: 'Professional', uploaded: new Date().toLocaleString(), storeKey: key
+        };
+        f.claim.vault.docs.push(docEntry);
+        saveProFileToDB(PRO_ACTIVE_FILE);
+        toast('\u2713 ' + file.name + ' added to ' + explicitType);
+        renderProVaultView(f, f.claim);
+        return;
+      }
+
+      // Otherwise: keyword match first, then AI fallback
+      var kw = classifyDocByKeyword(file.name);
+      var applyCategory = function(detected) {
+        var docEntry = {
+          name: file.name, type: detected.label, docTypeId: detected.id,
+          uploadedBy: 'Professional', uploaded: new Date().toLocaleString(), storeKey: key
+        };
+        f.claim.vault.docs.push(docEntry);
+        saveProFileToDB(PRO_ACTIVE_FILE);
+        renderProVaultView(f, f.claim);
+      };
+      var applyOther = function() {
+        f.claim.vault.docs.push({
+          name: file.name, type: 'Other Document', docTypeId: 'pro-misc',
+          uploadedBy: 'Professional', uploaded: new Date().toLocaleString(), storeKey: key
+        });
+        saveProFileToDB(PRO_ACTIVE_FILE);
+        renderProVaultView(f, f.claim);
+      };
+
+      if (kw) {
+        showCategoryConfirm(file.name, kw.id, kw.label, applyCategory, applyOther);
+      } else {
+        toast('Analysing ' + file.name + '...');
+        var snippet = extractTextSnippet(data);
+        var ai = await classifyDocByAI(file.name, snippet);
+        if (ai && ai.id !== 'pro-misc') {
+          showCategoryConfirm(file.name, ai.id, ai.label, applyCategory, applyOther);
+        } else {
+          applyOther();
+          toast('\u2713 ' + file.name + ' added as Other Document');
+        }
+      }
+    });
+  });
+}
+
+// ── Pro Notes view ────────────────────────────────────────────
+function renderProNotesView(f) {
+  var notesList = f.notes && f.notes.length
+    ? f.notes.slice().reverse().map(function(n) {
+        return '<div class="card-sm" style="margin-bottom:8px;">'
+          +'<div style="font-size:11.5px;color:var(--ink4);margin-bottom:5px;">'+n.time+'</div>'
+          +'<div style="font-size:13.5px;color:var(--ink);line-height:1.65;white-space:pre-wrap;">'+n.text+'</div>'
+          +'</div>';
+      }).join('')
+    : '<div style="color:var(--ink4);text-align:center;padding:32px;font-size:13px;">No notes yet.</div>';
+
+  document.getElementById('pro-body').innerHTML =
+    '<div style="max-width:760px;margin:0 auto;">'
+    +'<div class="card" style="margin-bottom:14px;">'
+    +'<div style="font-size:14px;font-weight:700;color:var(--ink);margin-bottom:12px;">Add Professional Note</div>'
+    +'<div class="card-flat" style="margin-bottom:10px;font-size:12px;color:var(--ink4);">'+svgIcon('lock',11,'var(--ink4)')+' Private — visible only to you, not the client.</div>'
+    +'<textarea id="pro-note-text" rows="4" placeholder="Document your analysis, strategy, or observations..." style="width:100%;font-family:\'DM Sans\',sans-serif;font-size:13.5px;border:1.5px solid var(--border2);border-radius:8px;padding:10px 13px;outline:none;resize:vertical;"></textarea>'
+    +'<button onclick="saveProFileNote()" class="btn btn-primary btn-sm" style="margin-top:10px;">'+svgIcon('plus',12,'#fff')+' Save Note</button>'
+    +'</div>'
+    +notesList
+    +'</div>';
+}
+
+function saveProFileNote() {
+  var f = PRO_FILES[PRO_ACTIVE_FILE];
+  if(!f) return;
+  var txt = (document.getElementById('pro-note-text')||{}).value.trim();
+  if(!txt) return;
+  if(!f.notes) f.notes = [];
+  f.notes.push({ text:txt, time:new Date().toLocaleString() });
+  saveProFileToDB(PRO_ACTIVE_FILE);
+  toast('\u2713 Note saved');
+  renderProNotesView(f);
+}
+
+// ── Pro Messages view ─────────────────────────────────────────
+async function renderProMessagesView(f, c) {
+  f.messages = f.messages || [];
+
+  var claimId = f.dbId || null;
+  var dbMsgs  = claimId ? await loadMessages(claimId) : [];
+
+  if (claimId) await markMessagesRead(claimId, 'policyholder');
+
+  var msgs = dbMsgs.length
+    ? dbMsgs.map(function(m){ return renderMsgBubble(m, 'pro'); }).join('')
+    : '<div style="text-align:center;padding:40px;color:var(--ink4);">'+svgIcon('chat',28,'var(--ink4)')+'<div style="margin-top:8px;font-size:13px;">No messages yet. Send the first message below.</div></div>';
+
+  var templates = [
+    'I have reviewed your claim file. Here are my initial observations.',
+    'Please upload your insurance policy declarations page as soon as possible.',
+    'Do not sign any release forms or accept any settlement before speaking with me.',
+    'I need the insurer\'s written estimate — please upload it when you receive it.',
+    'Your Proof of Loss deadline is approaching. We need to act soon.',
+    'Good news — I have negotiated an improved settlement offer to discuss.',
+    'Please log any calls with your insurer immediately after they happen.',
+    'I have identified items missing from the insurer\'s estimate that we can supplement.'
+  ];
+
+  document.getElementById('pro-body').innerHTML =
+    '<div style="max-width:680px;margin:0 auto;display:flex;flex-direction:column;gap:12px;">'
+    +'<div class="card" style="padding:0;overflow:hidden;">'
+    +'<div style="padding:12px 16px;border-bottom:1.5px solid var(--border);background:var(--paper);display:flex;align-items:center;gap:10px;">'
+    +'<div style="width:30px;height:30px;border-radius:8px;background:var(--teal-l);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--teal);">'+(c.name||'C').charAt(0).toUpperCase()+'</div>'
+    +'<div><div style="font-size:13.5px;font-weight:600;color:var(--ink);">'+(c.name||'Client')+'</div>'
+    +'<div style="font-size:11.5px;color:var(--ink4);">'+c.losstype+' · '+c.insurer+'</div></div>'
+    +'</div>'
+    +'<div id="pro-msg-list" style="padding:16px;min-height:280px;max-height:380px;overflow-y:auto;">'+msgs+'</div>'
+    +'<div style="padding:12px 16px;border-top:1.5px solid var(--border);display:flex;gap:8px;">'
+    +'<input id="pro-msg-input" placeholder="Message the policyholder..." style="flex:1;" onkeydown="if(event.key===\'Enter\')sendProFileMessage()">'
+    +'<button onclick="sendProFileMessage()" class="btn btn-primary" style="flex-shrink:0;">Send</button>'
+    +'</div></div>'
+    +'<div class="card-flat"><div style="font-size:12px;font-weight:700;color:var(--ink4);margin-bottom:8px;letter-spacing:.04em;">QUICK MESSAGES</div>'
+    +'<div id="pro-msg-templates" style="display:flex;flex-wrap:wrap;gap:6px;">'
+    +templates.map(function(t){
+        return '<button class="pro-tpl-btn" style="font-size:11.5px;padding:4px 11px;border-radius:9999px;background:var(--paper);color:var(--amber);border:1px solid var(--amber-b);cursor:pointer;" onmouseover="this.style.background=\'var(--amber-l)\'" onmouseout="this.style.background=\'var(--paper)\'">'+t+'</button>';
+      }).join('')
+    +'</div></div>'
+    +'</div>';
+
+  setTimeout(function(){
+    var ml = document.getElementById('pro-msg-list');
+    if(ml) ml.scrollTop = ml.scrollHeight;
+    var container = document.getElementById('pro-msg-templates');
+    if(container) container.addEventListener('click', function(e) {
+      var btn = e.target.closest('.pro-tpl-btn');
+      if(btn) { var inp=document.getElementById('pro-msg-input'); if(inp){inp.value=btn.textContent.trim();inp.focus();} }
+    });
+  }, 50);
+
+  if (_msgPollInterval) clearInterval(_msgPollInterval);
+  if (claimId) {
+    _msgPollInterval = setInterval(async function() {
+      var fresh = await loadMessages(claimId);
+      await markMessagesRead(claimId, 'policyholder');
+      var list = document.getElementById('pro-msg-list');
+      if (list) {
+        list.innerHTML = fresh.length
+          ? fresh.map(function(m){ return renderMsgBubble(m, 'pro'); }).join('')
+          : '<div style="text-align:center;padding:40px;color:var(--ink4);">No messages yet.</div>';
+        list.scrollTop = list.scrollHeight;
+      }
+    }, 15000);
+  }
+}
+
+async function sendProFileMessage() {
+  var f   = PRO_FILES[PRO_ACTIVE_FILE];
+  var inp = document.getElementById('pro-msg-input');
+  var txt = inp ? inp.value.trim() : '';
+  if (!txt || !f) return;
+  if (inp) inp.value = '';
+
+  var claimId  = f.dbId || null;
+  var proName  = SESSION.proName || 'Your PA';
+
+  if (claimId && SUPA) {
+    var sent = await sendMessage(claimId, 'pro', proName, txt);
+    if (sent) {
+      var list = document.getElementById('pro-msg-list');
+      if (list) {
+        list.innerHTML += renderMsgBubble(sent, 'pro');
+        list.scrollTop = list.scrollHeight;
+      }
+    }
+  } else {
+    // Fallback — store in memory for demo mode
+    if (!f.messages) f.messages = [];
+    f.messages.push({ role:'pro', text:txt, time:new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}), read:true });
+    renderProMessagesView(f, f.claim);
+  }
+  toast('\u2713 Message sent to ' + f.claim.name);
+}
+
+
+// ══════════════════════════════════════════════
+// PRO: NAV HELPERS
+// ══════════════════════════════════════════════
+
+function renderProList() {
+  PRO_ACTIVE_FILE = null;
+  PRO_FILE_PAGE = 'pf-overview';
+  document.getElementById('pro-page-title').textContent = 'Client Files';
+  document.getElementById('pro-page-sub').textContent = '';
+  document.getElementById('pro-page-actions').innerHTML =
+    '<button onclick="showAddFileForm()" class="btn btn-primary btn-sm">'+svgIcon('plus',13,'#fff')+' New Client File</button>';
+
+  // Reset sidebar nav to file list nav
+  document.getElementById('pro-nav').innerHTML = '';
+  var cn = document.getElementById('pro-client-name');
+  var cm = document.getElementById('pro-client-meta');
+  if(cn) cn.textContent = 'All Clients';
+  if(cm) cm.textContent = PRO_FILES.length + ' file'+(PRO_FILES.length!==1?'s':'');
+
+  renderProDashboard();
+}
+
+
+
+// ══════════════════════════════════════════════
+// CONTRACTOR NETWORK — REGIONAL DATA
+// ══════════════════════════════════════════════
+
+// Subscription tiers — monthly fee scales with service area radius
+var CTR_TIERS = {
+  local:    { label:'Local',    radius:30,  price:79,   badge:'Local',    color:'var(--ink3)' },
+  regional: { label:'Regional', radius:100, price:199,  badge:'Regional', color:'var(--teal)' },
+  provincial:{ label:'Provincial', radius:300, price:399, badge:'Provincial', color:'var(--amber)' },
+  national: { label:'National', radius:9999, price:699,  badge:'National', color:'var(--green)' },
+};
+
+// Demo contractor network — keyed by region
+// serviceArea: { lat, lng, radiusKm }
+// specialties: array of loss types they service
+var CONTRACTOR_NETWORK = [
+  { id:'ctr001', company:'City Restoration Services', contact:'Mike Deluca', phone:'416-555-0244', email:'mike@cityrestoration.ca',
+    city:'King', province:'ON', lat:43.92, lng:-79.53,
+    tier:'regional', specialties:['Water Damage','Mold','Fire & Smoke'],
+    license:'ROC-ON-28841', insured:true, rating:4.8, reviews:47,
+    verified:true, bio:'18 years of insurance restoration. Xactimate certified. Emergency response 24/7.',
+    leads:[], messages:[] },
+  { id:'ctr002', company:'GTA Water & Fire Pros', contact:'Sandra Kim', phone:'905-555-0188', email:'sandra@gtawaterfire.ca',
+    city:'Vaughan', province:'ON', lat:43.83, lng:-79.50,
+    tier:'regional', specialties:['Water Damage','Fire & Smoke','Wind / Hail'],
+    license:'ROC-ON-31204', insured:true, rating:4.9, reviews:82,
+    verified:true, bio:'Full-service restoration. Direct billing to all major insurers.',
+    leads:[], messages:[] },
+  { id:'ctr003', company:'Barrie Restoration Group', contact:'Tom Walsh', phone:'705-555-0391', email:'tom@barrierestoration.ca',
+    city:'Barrie', province:'ON', lat:44.39, lng:-79.69,
+    tier:'provincial', specialties:['Water Damage','Wind / Hail','Mold','Fire & Smoke'],
+    license:'ROC-ON-19034', insured:true, rating:4.7, reviews:31,
+    verified:true, bio:'Serving Barrie, Orillia, Collingwood and all of Simcoe County.',
+    leads:[], messages:[] },
+  { id:'ctr004', company:'Precision Auto Collision', contact:'James Hartley', phone:'416-555-0501', email:'james@precisionauto.ca',
+    city:'North York', province:'ON', lat:43.76, lng:-79.41,
+    tier:'regional', specialties:['Collision','Comprehensive','Theft / Vandalism'],
+    license:'AUTO-ON-00412', insured:true, rating:4.6, reviews:128,
+    verified:true, bio:'Certified collision repair. OEM parts. Direct insurance billing. Rental coordination.',
+    leads:[], messages:[] },
+  { id:'ctr005', company:'Coastal Storm Restoration', contact:'Rachel Nguyen', phone:'813-555-0277', email:'rachel@coastalstorm.com',
+    city:'Tampa', province:'FL', lat:27.95, lng:-82.46,
+    tier:'provincial', specialties:['Wind / Hail','Water Damage','Flood','Mold'],
+    license:'FL-CBC-1234567', insured:true, rating:4.9, reviews:203,
+    verified:true, bio:'Storm damage specialists. Licensed and insured in Florida. IICRC certified.',
+    leads:[], messages:[] },
+  { id:'ctr006', company:'Lone Star Claims Restoration', contact:'Brad Simmons', phone:'512-555-0344', email:'brad@lonestarrestoration.com',
+    city:'Austin', province:'TX', lat:30.27, lng:-97.74,
+    tier:'regional', specialties:['Wind / Hail','Water Damage','Fire & Smoke'],
+    license:'TX-RRC-889021', insured:true, rating:4.7, reviews:66,
+    verified:true, bio:'Central Texas restoration experts. 24-hour emergency response.',
+    leads:[], messages:[] },
+  { id:'ctr007', company:'Nashville Restoration Co.', contact:'Chris Parker', phone:'615-555-0192', email:'chris@nashvillerestoration.com',
+    city:'Nashville', province:'TN', lat:36.17, lng:-86.78,
+    tier:'regional', specialties:['Water Damage','Fire & Smoke','Wind / Hail','Mold'],
+    license:'TN-CONT-40291', insured:true, rating:4.8, reviews:54,
+    verified:true, bio:'Middle Tennessee\'s trusted restoration partner.',
+    leads:[], messages:[] },
+];
+
+// Currently logged-in contractor (in a real app this would be session-based)
+var ACTIVE_CONTRACTOR = null;
+var CTR_PAGE = 'ctr-dashboard';
+
+// ── Geo distance helper (Haversine) ──────────────────────────
+function geoDistanceKm(lat1, lng1, lat2, lng2) {
+  var R = 6371;
+  var dLat = (lat2-lat1) * Math.PI/180;
+  var dLng = (lng2-lng1) * Math.PI/180;
+  var a = Math.sin(dLat/2)*Math.sin(dLat/2)
+        + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)
+        * Math.sin(dLng/2)*Math.sin(dLng/2);
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+// ── Parse city/province from address string ───────────────────
+function parseCityProvince(address) {
+  // Try to extract city and province/state from "123 Main St, City, Province"
+  var parts = address.split(',').map(function(p){ return p.trim(); });
+  // Rough lookup table for demo matching
+  var cityCoords = {
+    'king':       { lat:43.92, lng:-79.53, prov:'ON' },
+    'vaughan':    { lat:43.83, lng:-79.50, prov:'ON' },
+    'barrie':     { lat:44.39, lng:-79.69, prov:'ON' },
+    'toronto':    { lat:43.65, lng:-79.38, prov:'ON' },
+    'north york': { lat:43.76, lng:-79.41, prov:'ON' },
+    'mississauga':{ lat:43.59, lng:-79.64, prov:'ON' },
+    'brampton':   { lat:43.73, lng:-79.76, prov:'ON' },
+    'hamilton':   { lat:43.25, lng:-79.87, prov:'ON' },
+    'ottawa':     { lat:45.42, lng:-75.69, prov:'ON' },
+    'tampa':      { lat:27.95, lng:-82.46, prov:'FL' },
+    'orlando':    { lat:28.54, lng:-81.38, prov:'FL' },
+    'miami':      { lat:25.77, lng:-80.19, prov:'FL' },
+    'austin':     { lat:30.27, lng:-97.74, prov:'TX' },
+    'dallas':     { lat:32.78, lng:-96.80, prov:'TX' },
+    'houston':    { lat:29.76, lng:-95.37, prov:'TX' },
+    'nashville':  { lat:36.17, lng:-86.78, prov:'TN' },
+    'memphis':    { lat:35.15, lng:-90.05, prov:'TN' },
+  };
+  for(var i=0; i<parts.length; i++){
+    var key = parts[i].toLowerCase().replace(/[^a-z ]/g,'').trim();
+    if(cityCoords[key]) return cityCoords[key];
+  }
+  // Default to Toronto if not found
+  return { lat:43.65, lng:-79.38, prov:'ON' };
+}
+
+// ── Find contractors matching address + loss type ─────────────
+function findMatchingContractors(address, lossType) {
+  var coords = parseCityProvince(address);
+  var results = [];
+  CONTRACTOR_NETWORK.forEach(function(c) {
+    var radiusKm = CTR_TIERS[c.tier] ? CTR_TIERS[c.tier].radius : 50;
+    var dist = geoDistanceKm(coords.lat, coords.lng, c.lat, c.lng);
+    var servicesLoss = !lossType || c.specialties.indexOf(lossType) >= 0 ||
+      (lossType === 'Collision' && c.specialties.indexOf('Collision') >= 0) ||
+      (lossType === 'Comprehensive' && c.specialties.indexOf('Comprehensive') >= 0);
+    if(dist <= radiusKm && servicesLoss) {
+      results.push({ contractor:c, distanceKm:Math.round(dist) });
+    }
+  });
+  // Sort by rating desc
+  results.sort(function(a,b){ return b.contractor.rating - a.contractor.rating; });
+  return results;
+}
+
+
+// ══════════════════════════════════════════════
+// POLICYHOLDER: FIND A CONTRACTOR
+// ══════════════════════════════════════════════
+
+function renderContractorFinder() {
+  var body = document.getElementById('page-body');
+  var isAuto = CLAIM.claimType === 'auto';
+  setPage('contractors',
+    isAuto ? 'Repair Shops' : 'Contractors',
+    'Find a vetted contractor in your area · Track your own contractors below',
+    '<button onclick="showAddContractorForm()" class="btn btn-ghost btn-sm">' + svgIcon('plus',13) + ' Add My Own</button>'
+  );
+
+  // Find regional matches
+  var matches = CLAIM.address ? findMatchingContractors(CLAIM.address, CLAIM.losstype) : [];
+
+  var networkHtml = matches.length
+    ? matches.map(function(m) {
+        var c = m.contractor;
+        var tier = CTR_TIERS[c.tier] || {};
+        var stars = '';
+        for(var i=0; i<5; i++) stars += i < Math.floor(c.rating) ? '★' : '☆';
+        return '<div class="card" style="margin-bottom:10px;">'
+          +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">'
+          +'<div style="display:flex;gap:12px;align-items:flex-start;">'
+          +'<div style="width:44px;height:44px;border-radius:10px;background:var(--green-l);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px;font-weight:700;color:var(--green);">'
+          + c.company.charAt(0) + '</div>'
+          +'<div>'
+          +'<div style="font-size:14px;font-weight:700;color:var(--ink);">' + c.company + '</div>'
+          +'<div style="display:flex;align-items:center;gap:6px;margin-top:3px;">'
+          +(c.verified ? '<span style="font-size:11px;color:var(--green);font-weight:600;">' + svgIcon('check',10,'var(--green)') + ' Verified</span>' : '')
+          +'<span class="badge" style="background:'+tier.color+'18;color:'+tier.color+';">' + (tier.badge||c.tier) + '</span>'
+          +'<span style="font-size:11.5px;color:var(--amber);">' + stars + '</span>'
+          +'<span style="font-size:11.5px;color:var(--ink4);">(' + c.reviews + ')</span>'
+          +'</div>'
+          +'<div style="font-size:12px;color:var(--ink4);margin-top:2px;">' + c.city + ', ' + c.province + ' · ' + m.distanceKm + ' km away</div>'
+          +'</div>'
+          +'</div>'
+          +'</div>'
+          +'<div style="font-size:12.5px;color:var(--ink3);margin-bottom:10px;line-height:1.55;">' + c.bio + '</div>'
+          +'<div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px;">'
+          + c.specialties.map(function(s){ return '<span style="font-size:11px;padding:2px 9px;border-radius:9999px;background:var(--paper);border:1px solid var(--border);color:var(--ink3);">' + s + '</span>'; }).join('')
+          +'</div>'
+          +'<div style="display:flex;gap:8px;">'
+          +'<button onclick="requestContractorQuote(\'' + c.id + '\')" class="btn btn-primary btn-sm">' + svgIcon('phone',12,'#fff') + ' Request Quote</button>'
+          +'<a href="tel:' + c.phone + '" class="btn btn-ghost btn-sm">' + c.phone + '</a>'
+          +'</div></div>';
+      }).join('')
+    : '<div class="card-flat" style="text-align:center;padding:28px;color:var(--ink4);">'
+      + svgIcon('tools',28,'var(--ink4)')
+      + '<div style="margin-top:8px;font-size:13px;">No registered contractors found in your area for this loss type yet.</div>'
+      + '<div style="font-size:12px;margin-top:4px;">Use the form below to add your own contractor, or try the Ask ClaimGuide chat for recommendations.</div>'
+      + '</div>';
+
+  // Existing manually-added contractors
+  var manualCtrs = CLAIM.contractors || [];
+  var statusColors = { hired:'var(--teal)', quoted:'var(--amber)', contacted:'var(--ink3)', rejected:'var(--red)' };
+  var manualHtml = manualCtrs.length
+    ? '<div style="margin-top:20px;"><div style="font-size:11px;font-weight:700;color:var(--ink4);letter-spacing:.05em;margin-bottom:10px;">YOUR CONTRACTORS</div>'
+      + manualCtrs.map(function(c, i) {
+          var col = statusColors[c.status] || 'var(--ink4)';
+          return '<div class="card-sm" style="margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;">'
+            +'<div>'
+            +'<div style="font-size:13.5px;font-weight:600;color:var(--ink);">' + c.name + '</div>'
+            +'<div style="display:flex;gap:6px;margin-top:3px;">'
+            +'<span class="badge" style="background:'+col+'15;color:'+col+';">' + (c.status||'contacted') + '</span>'
+            +(c.estimate ? '<span style="font-size:12px;color:var(--teal);font-weight:600;">$' + Number(c.estimate).toLocaleString() + '</span>' : '')
+            +'</div>'
+            +(c.notes ? '<div style="font-size:12px;color:var(--ink4);margin-top:2px;">' + c.notes + '</div>' : '')
+            +'</div>'
+            +'<button onclick="removeContractor('+i+')" class="btn btn-ghost btn-sm" style="color:var(--red);">' + svgIcon('trash',11,'var(--red)') + '</button>'
+            +'</div>';
+        }).join('')
+      + '</div>'
+    : '';
+
+  // Add contractor form
+  var form = '<div class="card" style="margin-top:14px;" id="ctr-add-form" style="display:none;">'
+    +'<div style="font-size:13.5px;font-weight:700;color:var(--ink);margin-bottom:12px;">Add Your Own Contractor</div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">'
+    +'<div><label>Company Name</label><input id="ctr-name" placeholder="e.g. City Restoration Services"></div>'
+    +'<div><label>Status</label><select id="ctr-status"><option value="contacted">Contacted</option><option value="quoted">Quote Received</option><option value="hired">Hired</option><option value="rejected">Not Using</option></select></div>'
+    +'<div><label>Phone</label><input id="ctr-phone" placeholder="(416) 555-0100"></div>'
+    +'<div><label>Estimate ($)</label><input type="number" id="ctr-estimate" placeholder="0"></div>'
+    +'<div><label>Licensed &amp; Insured?</label><select id="ctr-license"><option value="true">Yes — verified</option><option value="false">Not yet verified</option></select></div>'
+    +'<div><label>Notes</label><input id="ctr-notes" placeholder="e.g. Specializes in water damage"></div>'
+    +'</div>'
+    +'<button onclick="saveContractor()" class="btn btn-primary btn-sm" style="margin-top:10px;">' + svgIcon('check',12,'#fff') + ' Save</button>'
+    +'</div>';
+
+  var redFlags = isAuto
+    ? ['Demands full payment before work starts','Asks you to sign over your insurance benefits (AOB)','No written itemized estimate','Pressures you to skip the insurer inspection']
+    : ['Asks you to sign Assignment of Benefits (AOB)','Door-to-door solicitor immediately after a storm','No written contract or warranty','Full payment demanded upfront','Not licensed or insured'];
+
+  body.innerHTML =
+    '<div style="max-width:820px;margin:0 auto;">'
+    +(matches.length ? '<div style="font-size:11px;font-weight:700;color:var(--ink4);letter-spacing:.05em;margin-bottom:12px;">VERIFIED CONTRACTORS IN YOUR AREA</div>' : '')
+    + networkHtml
+    + manualHtml + form
+    +'<div class="card" style="background:var(--amber-l);border-color:var(--amber-b);margin-top:14px;">'
+    +'<div style="font-size:13px;font-weight:700;color:var(--amber);margin-bottom:8px;">' + svgIcon('alert',13,'var(--amber)') + ' Red Flags — Walk Away If They:</div>'
+    + redFlags.map(function(f){ return '<div style="font-size:12.5px;color:#92400E;padding:3px 0;">⚠ ' + f + '</div>'; }).join('')
+    +'</div></div>';
+}
+
+function requestContractorQuote(ctrId) {
+  var ctr = CONTRACTOR_NETWORK.find(function(c){ return c.id === ctrId; });
+  if(!ctr) return;
+  // Add as a lead on the contractor's side
+  ctr.leads.push({
+    id: 'lead'+Date.now(),
+    clientName: CLAIM.name,
+    address: CLAIM.address,
+    lossType: CLAIM.losstype,
+    phone: '',
+    email: '',
+    date: new Date().toISOString().split('T')[0],
+    status: 'new',
+    notes: CLAIM.desc || ''
+  });
+  // Add to policyholder's contractor list
+  if(!CLAIM.contractors) CLAIM.contractors = [];
+  CLAIM.contractors.push({
+    name: ctr.company,
+    status: 'contacted',
+    phone: ctr.phone,
+    estimate: 0,
+    license: ctr.insured,
+    notes: 'Requested through ClaimGuide 365 network'
+  });
+  toast('\u2713 Quote request sent to ' + ctr.company + ' — they will contact you within 24 hours');
+  renderContractorFinder();
+}
+
+function showAddContractorForm() {
+  var form = document.getElementById('ctr-add-form');
+  if(form) { form.style.display = ''; form.scrollIntoView({behavior:'smooth'}); }
+}
+
+
+// ══════════════════════════════════════════════
+// CONTRACTOR PORTAL — INIT
+// ══════════════════════════════════════════════
 
 function goCtrPage(id) {
   CTR_PAGE = id;
-  initContractorPortal(); // refresh nav active state
 
   var pages = {
     'ctr-dashboard': renderCtrDashboard,
@@ -5732,7 +7813,7 @@ var SESSION = {
   userId:   null,   // Supabase auth user id
   firmId:   null,   // firm this policyholder is linked to (from URL slug)
   firmName: null,
-  role:     'policyholder'  // 'policyholder' | 'pro' | 'contractor'
+  role:     'policyholder'  // 'policyholder' | 'pro'
 };
 
 // ── Welcome screen navigation helpers ───────────────────────
@@ -6388,22 +8469,7 @@ async function signOut() {
         return;
       }
 
-      // Check if this is a contractor
-      var ctrCheck = await SUPA.from('contractor_registrations')
-        .select('id, name, company_name')
-        .eq('auth_id', session.user.id)
-        .eq('status', 'approved')
-        .maybeSingle();
 
-      if (ctrCheck.data) {
-        SESSION.role = 'contractor';
-        APP_ROLE     = 'contractor';
-        hideAllScreens();
-        document.getElementById('screen-contractor').classList.add('active');
-        initContractorPortal();
-        toast('\u2713 Welcome back, ' + (ctrCheck.data.name || session.user.email) + '!');
-        return;
-      }
 
       // Regular policyholder — restore their claim
       await ensurePolicyholder(session.user.id, session.user.email);
