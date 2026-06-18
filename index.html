@@ -2063,45 +2063,102 @@ function runPolicyAnalysis() {
   var f = FILE_STORE['pol-file'];
   var focus = (document.getElementById('pol-focus')||{}).value || CLAIM.losstype;
   var out = document.getElementById('pol-output');
+  if (!f) { toast('Please upload your policy first', '#D97706'); return; }
   out.innerHTML = thinkDots();
-  if(!DEMO_MODE && f) {
-    aiDoc('You are an insurance claim assistant. Analyse this policy document and extract key information in simple language. Provide: dwelling limit, contents limit, loss of use/ALE limit, deductible (and any separate wind/hail deductible), what is covered, key exclusions, any relevant sublimits (mold, water, etc.). Use plain English — the reader is a homeowner, not an expert.','Focus on coverage for: '+focus+'. Summarise in a clear, friendly way.',f.b64,f.mt).then(function(result){
-      renderPolicySummary(result, f.name);
-    }); return;
-  }
-  setTimeout(function(){ renderPolicySummary(null, f?f.name:null); }, 1800);
+
+  var system = [
+    "You are an expert insurance policy analyst. You will be given an actual insurance policy or declarations page PDF.",
+    "Read the ACTUAL document carefully — do not assume it is a standard homeowners policy. It could be commercial property, auto, renters, condo, or any other type.",
+    "Extract the REAL coverage limits, deductibles, and terms found in THIS specific document. Never invent or guess numbers — if a figure is not in the document, say so.",
+    "",
+    "Respond with ONLY valid JSON, no markdown formatting, no code fences, no commentary. Format exactly as:",
+    "{",
+    '  "policyType": string (e.g. "HO-3 Homeowners Policy", "Commercial Property Policy", "Auto Policy" — based on what the document actually is),',
+    '  "insurer": string (the actual insurer name found in the document),',
+    '  "policyNumber": string (if found, else empty string),',
+    '  "items": [',
+    '    { "label": string, "value": string, "note": string }',
+    "  ],",
+    '  "watchOut": string (1-2 sentences on the most important gap, sublimit, or exclusion relevant to the focus loss type — based on what is ACTUALLY in this policy)',
+    "}",
+    "",
+    "For 'items', extract whatever coverage sections actually exist in this document — examples include dwelling/building limits, contents/personal property limits, loss of use/ALE, liability limits, deductibles (note any separate wind/hail or named-peril deductibles), and any sublimits or endorsements relevant to the focus loss type (mold, water, sewer backup, flood, earthquake, etc.). Only include items that are actually present in the document. Use plain English labels a non-expert would understand, but the VALUES must be the real figures and terms from the document.",
+  ].join("\n");
+
+  var userPrompt = "This is the policyholder's actual insurance document. Focus your analysis especially on coverage relevant to: " + focus + ". Extract real data only.";
+
+  aiDoc(system, userPrompt, f.b64, f.mt, 2500).then(function(result) {
+    renderPolicySummary(result, f.name);
+  });
 }
 
 function renderPolicySummary(aiText, fileName) {
-  var items = [
-    {label:'Dwelling (Coverage A)', val:'$385,000', note:'Replacement cost — covers your home structure'},
-    {label:'Personal Property (C)', val:'$192,500', note:'Your belongings — ACV basis (ask about upgrading to RCV)'},
-    {label:'Loss of Use / ALE (D)', val:'$77,000', note:'Hotel or rent if your home is uninhabitable'},
-    {label:'Deductible', val:'$5,000', note:'Wind/Hail. Standard losses may have a different deductible.'},
-    {label:'Water Damage', val:'Covered', note:'Sudden & accidental only — flood and seepage excluded'},
-    {label:'Mold Sublimit', val:'$10,000 cap', note:'⚠ Mold remediation capped — may not cover full cost'},
-  ];
+  var out = document.getElementById('pol-output');
+  if (!aiText) {
+    out.innerHTML = '<div class="card" style="text-align:center;padding:32px 16px;">'
+      + '<div style="color:var(--red);font-size:14px;font-weight:600;margin-bottom:8px;">Could not analyse policy</div>'
+      + '<div style="font-size:13px;color:var(--ink4);">The AI did not return a response — please try again.</div>'
+      + '</div>';
+    return;
+  }
+
+  var data;
+  try {
+    var clean = aiText.trim();
+    clean = clean.replace(/^```json\s*/i, '').replace(/^```\s*/, '').replace(/```\s*$/, '').trim();
+    var firstBrace = clean.indexOf('{');
+    var lastBrace = clean.lastIndexOf('}');
+    if (firstBrace >= 0 && lastBrace > firstBrace) clean = clean.slice(firstBrace, lastBrace + 1);
+    data = JSON.parse(clean);
+  } catch(e) {
+    console.error('Policy JSON parse failed:', e.message, '\nRaw text:', aiText);
+    // Fallback: show the raw AI text as plain prose rather than losing the analysis entirely
+    out.innerHTML = '<div class="fade-in">'
+      + (fileName ? '<div style="font-size:12px;color:var(--teal);font-weight:600;margin-bottom:10px;">✓ ' + fileName + '</div>' : '')
+      + '<div style="font-size:13px;color:var(--ink2);line-height:1.7;white-space:pre-wrap;">' + aiText.replace(/</g,'&lt;') + '</div>'
+      + '<div style="display:flex;gap:8px;margin-top:14px;">'
+      + '<button onclick="markDone(\'policy\')" class="btn btn-primary btn-sm">'+svgIcon('check',12,'#fff')+' Mark Complete</button>'
+      + '<button onclick="goPage(\'damage\')" class="btn btn-ghost btn-sm">Next: Document Damage →</button>'
+      + '</div></div>';
+    if (FILE_STORE['pol-file']) { var pf0 = FILE_STORE['pol-file']; CLAIM.policy = pf0; CLAIM.vault.docs.push({ name:pf0.name, type:'Policy', uploaded:'Just now', storeKey:'pol-file', cloudPath:pf0.cloudPath||null, mimeType:pf0.mt||null }); }
+    return;
+  }
+
+  var items = data.items || [];
   var html = '<div class="fade-in">'
-    +(fileName?'<div style="font-size:12px;color:var(--teal);font-weight:600;margin-bottom:10px;">✓ '+fileName+'</div>':'')
-    +'<div style="background:var(--teal-l);border:1px solid var(--teal-b);border-radius:10px;padding:12px;margin-bottom:14px;">'
-    +'<div style="font-size:12.5px;font-weight:700;color:var(--teal);">HO-3 Homeowners Policy · '+CLAIM.insurer+'</div>'
-    +'</div>';
-  items.forEach(function(it){
-    html +='<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--border);">'
-      +'<div><div style="font-size:13px;font-weight:600;color:var(--ink);">'+it.label+'</div>'
-      +'<div style="font-size:11.5px;color:var(--ink4);margin-top:1px;">'+it.note+'</div></div>'
-      +'<div style="font-size:13px;font-weight:700;color:var(--teal);white-space:nowrap;margin-left:12px;">'+it.val+'</div>'
-      +'</div>';
-  });
-  html += '<div style="background:#FEF3C7;border:1px solid var(--amber-b);border-radius:8px;padding:10px 12px;margin-top:10px;font-size:12.5px;color:var(--amber);">'
-    +'⚠ <strong>Watch out:</strong> Your mold sublimit ($10K) may be less than full remediation cost. Document all mold carefully and get a professional estimate.'
-    +'</div>'
-    +'<div style="display:flex;gap:8px;margin-top:14px;">'
-    +'<button onclick="markDone(\'policy\')" class="btn btn-primary btn-sm">'+svgIcon('check',12,'#fff')+' Mark Complete</button>'
-    +'<button onclick="goPage(\'damage\')" class="btn btn-ghost btn-sm">Next: Document Damage →</button>'
-    +'</div></div>';
-  document.getElementById('pol-output').innerHTML = html;
-  if(FILE_STORE['pol-file']) { var pf=FILE_STORE['pol-file']; CLAIM.policy=pf; CLAIM.vault.docs.push({name:pf.name,type:'Policy',uploaded:'Just now',storeKey:'pol-file',cloudPath:pf.cloudPath||null,mimeType:pf.mt||null}); }
+    + (fileName ? '<div style="font-size:12px;color:var(--teal);font-weight:600;margin-bottom:10px;">✓ ' + fileName + '</div>' : '')
+    + '<div style="background:var(--teal-l);border:1px solid var(--teal-b);border-radius:10px;padding:12px;margin-bottom:14px;">'
+    + '<div style="font-size:12.5px;font-weight:700;color:var(--teal);">' + (data.policyType || 'Policy') + (data.insurer ? ' · ' + data.insurer : '') + '</div>'
+    + (data.policyNumber ? '<div style="font-size:11px;color:var(--ink4);margin-top:2px;">Policy #' + data.policyNumber + '</div>' : '')
+    + '</div>';
+
+  if (items.length) {
+    items.forEach(function(it) {
+      html += '<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--border);">'
+        + '<div style="flex:1;min-width:0;padding-right:10px;"><div style="font-size:13px;font-weight:600;color:var(--ink);">' + (it.label||'') + '</div>'
+        + (it.note ? '<div style="font-size:11.5px;color:var(--ink4);margin-top:1px;">' + it.note + '</div>' : '') + '</div>'
+        + '<div style="font-size:13px;font-weight:700;color:var(--teal);white-space:nowrap;">' + (it.value||'') + '</div>'
+        + '</div>';
+    });
+  } else {
+    html += '<div style="font-size:13px;color:var(--ink4);padding:12px 0;">No specific coverage details could be extracted from this document.</div>';
+  }
+
+  if (data.watchOut) {
+    html += '<div style="background:#FEF3C7;border:1px solid var(--amber-b);border-radius:8px;padding:10px 12px;margin-top:10px;font-size:12.5px;color:var(--amber);">'
+      + '⚠ <strong>Watch out:</strong> ' + data.watchOut
+      + '</div>';
+  }
+
+  html += '<div style="display:flex;gap:8px;margin-top:14px;">'
+    + '<button onclick="markDone(\'policy\')" class="btn btn-primary btn-sm">'+svgIcon('check',12,'#fff')+' Mark Complete</button>'
+    + '<button onclick="goPage(\'damage\')" class="btn btn-ghost btn-sm">Next: Document Damage →</button>'
+    + '</div></div>';
+
+  out.innerHTML = html;
+  if (FILE_STORE['pol-file']) { var pf=FILE_STORE['pol-file']; CLAIM.policy=pf; CLAIM.vault.docs.push({name:pf.name,type:'Policy',uploaded:'Just now',storeKey:'pol-file',cloudPath:pf.cloudPath||null,mimeType:pf.mt||null}); }
+  CLAIM.policyAnalysis = data;
+  if (typeof saveClaimToDB === 'function' && SESSION.userId) saveClaimToDB();
 }
 
 function markDone(step) {
