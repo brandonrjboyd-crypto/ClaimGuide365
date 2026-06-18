@@ -6948,12 +6948,15 @@ function renderProContractorsView(c) {
 
 // ── Estimates view ────────────────────────────────────────────
 function renderProEstimatesView(c) {
-  var est = c.estimates;
+  var est = c.estimates || {};
   var vaultDocs = (c.vault && c.vault.docs) || [];
   var insurerDoc    = vaultDocs.find(function(d){ return d.type === 'Insurer Estimate' || d.docTypeId === 'pro-est'; });
   var contractorDoc = vaultDocs.find(function(d){ return d.type === 'Contractor Estimate' || d.docTypeId === 'pro-ctr'; });
 
-  if(!est) { document.getElementById('pro-body').innerHTML = proCard('Estimates', '<div style="color:var(--ink4);text-align:center;padding:32px;font-size:13px;">No estimates uploaded yet.</div>'); return; }
+  if (!est.insurerTotal && !est.contractorTotal && !insurerDoc && !contractorDoc) {
+    document.getElementById('pro-body').innerHTML = proCard('Estimates', '<div style="color:var(--ink4);text-align:center;padding:32px;font-size:13px;">No estimates uploaded yet.</div>');
+    return;
+  }
 
   // Stage the docs globally so the onclick handler can reference them without fragile inline JSON
   window._proCompareInsurerDoc    = insurerDoc;
@@ -6963,16 +6966,20 @@ function renderProEstimatesView(c) {
 
   var lineItemBtn = (insurerDoc && contractorDoc)
     ? '<button onclick="openLineItemComparisonFromDocs(window._proCompareInsurerDoc, window._proCompareContractorDoc, window._proCompareInsurerLabel, window._proCompareContractorLabel)" class="btn btn-primary btn-sm">' + svgIcon('chart',12,'#fff') + ' Line-by-Line Comparison</button>'
-    : '<div style="font-size:12px;color:var(--ink4);">Upload both estimate PDFs in Documents &amp; Photos to enable line-by-line comparison.</div>';
+    : '<div style="font-size:12px;color:var(--ink4);">Upload both an Insurer Estimate and a Contractor Estimate PDF in Documents &amp; Photos to enable line-by-line comparison.</div>';
 
-  var html = '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px;">'
-    +[['Insurer Estimate', est.insurerTotal, 'var(--amber)'],['Contractor Estimate', est.contractorTotal, 'var(--teal)'],['Gap', Math.abs(est.gap||0), 'var(--red)']].map(function(col){
-        return '<div style="background:var(--paper);border-radius:10px;padding:14px;text-align:center;border:1px solid var(--border);">'
-          +'<div style="font-size:11.5px;color:var(--ink4);margin-bottom:4px;">'+col[0]+'</div>'
-          +'<div style="font-family:\'Lora\',serif;font-size:22px;font-weight:700;color:'+col[2]+';line-height:1;">$'+Number(col[1]).toLocaleString()+'</div>'
-          +'</div>';
-      }).join('')
-    +'</div>'
+  var statsHtml = (est.insurerTotal || est.contractorTotal)
+    ? '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px;">'
+      +[['Insurer Estimate', est.insurerTotal||0, 'var(--amber)'],['Contractor Estimate', est.contractorTotal||0, 'var(--teal)'],['Gap', Math.abs(est.gap||0), 'var(--red)']].map(function(col){
+          return '<div style="background:var(--paper);border-radius:10px;padding:14px;text-align:center;border:1px solid var(--border);">'
+            +'<div style="font-size:11.5px;color:var(--ink4);margin-bottom:4px;">'+col[0]+'</div>'
+            +'<div style="font-family:\'Lora\',serif;font-size:22px;font-weight:700;color:'+col[2]+';line-height:1;">$'+Number(col[1]).toLocaleString()+'</div>'
+            +'</div>';
+        }).join('')
+      +'</div>'
+    : '<div style="font-size:12.5px;color:var(--ink4);margin-bottom:16px;">Totals haven\'t been entered by the client yet — run the line-by-line comparison below to extract them from the PDFs directly.</div>';
+
+  var html = statsHtml
     +(est.contractorName ? proInfoRow('Contractor', est.contractorName) : '')
     +'<div style="margin-top:16px;">'+lineItemBtn+'</div>';
   document.getElementById('pro-body').innerHTML = proCard('Estimates', html);
