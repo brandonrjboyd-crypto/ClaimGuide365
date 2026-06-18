@@ -2082,7 +2082,7 @@ function runPolicyAnalysis() {
     '  "watchOut": string (1-2 sentences on the most important gap, sublimit, or exclusion relevant to the focus loss type — based on what is ACTUALLY in this policy)',
     "}",
     "",
-    "For 'items', extract whatever coverage sections actually exist in this document — examples include dwelling/building limits, contents/personal property limits, loss of use/ALE, liability limits, deductibles (note any separate wind/hail or named-peril deductibles), and any sublimits or endorsements relevant to the focus loss type (mold, water, sewer backup, flood, earthquake, etc.). Only include items that are actually present in the document. Use plain English labels a non-expert would understand, but the VALUES must be the real figures and terms from the document.",
+    "For 'items', extract whatever coverage sections actually exist in this document — examples include dwelling/building limits, contents/personal property limits, loss of use/ALE, liability limits, deductibles (note any separate wind/hail or named-peril deductibles), and any sublimits or endorsements relevant to the focus loss type (mold, water, sewer backup, flood, earthquake, etc.). Only include items that are actually present in the document. Use plain English labels a non-expert would understand, but the VALUES must be the real figures and terms from the document. IMPORTANT: keep 'value' SHORT — a dollar amount, percentage, or 1-3 word status (e.g. '$385,000', 'Covered', '5% / $100,000 min', 'Not stated'). Put any longer explanation, caveat, or context in 'note' instead, never in 'value'.",
   ].join("\n");
 
   var userPrompt = "This is the policyholder's actual insurance document. Focus your analysis especially on coverage relevant to: " + focus + ". Extract real data only.";
@@ -2134,10 +2134,11 @@ function renderPolicySummary(aiText, fileName) {
 
   if (items.length) {
     items.forEach(function(it) {
-      html += '<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--border);">'
-        + '<div style="flex:1;min-width:0;padding-right:10px;"><div style="font-size:13px;font-weight:600;color:var(--ink);">' + (it.label||'') + '</div>'
+      var longValue = (it.value||'').length > 20;
+      html += '<div style="display:flex;'+(longValue?'flex-direction:column;gap:4px;':'justify-content:space-between;align-items:flex-start;')+'padding:9px 0;border-bottom:1px solid var(--border);">'
+        + '<div style="flex:1;min-width:0;'+(longValue?'':'padding-right:10px;')+'"><div style="font-size:13px;font-weight:600;color:var(--ink);">' + (it.label||'') + '</div>'
         + (it.note ? '<div style="font-size:11.5px;color:var(--ink4);margin-top:1px;">' + it.note + '</div>' : '') + '</div>'
-        + '<div style="font-size:13px;font-weight:700;color:var(--teal);white-space:nowrap;">' + (it.value||'') + '</div>'
+        + '<div style="font-size:13px;font-weight:700;color:var(--teal);'+(longValue?'word-break:break-word;':'white-space:nowrap;flex-shrink:0;')+'">' + (it.value||'') + '</div>'
         + '</div>';
     });
   } else {
