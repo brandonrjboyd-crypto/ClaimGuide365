@@ -2769,7 +2769,7 @@ async function runLineItemComparison(iFile, cFile, insurerLabel, contractorLabel
   try {
     var response = await callAPI({
       model: MODEL,
-      max_tokens: 8000,
+      max_tokens: 16000,
       system: systemPrompt,
       messages: [{
         role: 'user',
@@ -2797,15 +2797,26 @@ async function runLineItemComparison(iFile, cFile, insurerLabel, contractorLabel
 
 function renderLineItemResults(jsonText, insurerLabel, contractorLabel) {
   var data;
+  console.log('Raw AI response for line item comparison:', jsonText);
   try {
-    var clean = (jsonText||'').replace(/```json|```/g,'').trim();
+    var clean = (jsonText||'').trim();
+    // Strip markdown code fences if present
+    clean = clean.replace(/^```json\s*/i, '').replace(/^```\s*/, '').replace(/```\s*$/, '').trim();
+    // If there's extra text before/after the JSON object, extract just the {...} block
+    var firstBrace = clean.indexOf('{');
+    var lastBrace = clean.lastIndexOf('}');
+    if (firstBrace >= 0 && lastBrace > firstBrace) {
+      clean = clean.slice(firstBrace, lastBrace + 1);
+    }
     data = JSON.parse(clean);
   } catch(e) {
+    console.error('JSON parse failed:', e.message, '\nRaw text was:', jsonText);
     var body0 = document.getElementById('line-compare-body');
     if (body0) body0.innerHTML =
       '<div class="card" style="text-align:center;padding:40px 24px;">'
       + '<div style="color:var(--red);font-size:14px;font-weight:600;margin-bottom:8px;">Could not parse comparison</div>'
-      + '<div style="font-size:13px;color:var(--ink4);">The AI response was not valid — please try again.</div>'
+      + '<div style="font-size:13px;color:var(--ink4);margin-bottom:16px;">The AI response was not valid JSON — this can happen with very large estimates. Try again, or check the browser console for details.</div>'
+      + '<button onclick="closeLineItemComparison()" class="btn btn-ghost">Close</button>'
       + '</div>';
     return;
   }
