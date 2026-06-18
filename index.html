@@ -729,10 +729,89 @@ function handleZoneChange(input) {
     // Fire registered callback
     var cb = UPLOAD_CALLBACKS[id];
     if(cb) cb(data);
+
+    // Upload to cloud storage in the background (non-blocking)
+    uploadFileToCloud(id, file, data).then(function(path) {
+      if (path) {
+        FILE_STORE[id].cloudPath = path;
+        if (badge) badge.textContent = '✓ ' + file.name + ' (' + (file.size/1024).toFixed(0) + ' KB) — saved';
+      }
+    });
   }).catch(function(e){
     console.error('Upload error for '+id+':', e);
     if(badge){ badge.textContent = '⚠ Error reading file — try again'; badge.style.color='var(--amber)'; }
   });
+}
+
+// ── Cloud storage helpers ───────────────────────────────────────
+// Uploads a file to Supabase Storage under the user's own folder.
+// Returns the storage path on success, or null if storage isn't available.
+async function uploadFileToCloud(storeKey, file, data) {
+  if (!SUPA || !SESSION.userId) return null;
+  try {
+    var safeName = (file.name || 'file').replace(/[^a-zA-Z0-9._-]/g, '_');
+    var path = SESSION.userId + '/' + storeKey + '-' + Date.now() + '-' + safeName;
+    var res = await SUPA.storage.from('claim-files').upload(path, file, {
+      contentType: file.type || 'application/octet-stream',
+      upsert: true
+    });
+    if (res.error) { console.warn('Cloud upload failed:', res.error.message); return null; }
+    return path;
+  } catch(e) {
+    console.warn('Cloud upload error:', e.message);
+    return null;
+  }
+}
+
+// Downloads a file from Supabase Storage and returns the same shape as readFile()
+async function downloadFileFromCloud(path, mimeType, fileName) {
+  if (!SUPA || !path) return null;
+  try {
+    var res = await SUPA.storage.from('claim-files').download(path);
+    if (res.error) { console.warn('Cloud download failed:', res.error.message); return null; }
+    var blob = res.data;
+    return new Promise(function(resolve, reject) {
+      var r = new FileReader();
+      r.onerror = reject;
+      r.onload = function() {
+        var d = r.result;
+        resolve({ dataUrl:d, b64:d.split(',')[1], mt:mimeType||blob.type||'application/octet-stream', name:fileName||'file', size:blob.size });
+      };
+      r.readAsDataURL(blob);
+    });
+  } catch(e) {
+    console.warn('Cloud download error:', e.message);
+    return null;
+  }
+}
+
+// Ensures FILE_STORE[key] has actual file bytes — downloads from cloud if only metadata exists
+async function ensureFileLoaded(storeKey, cloudPath, mimeType, fileName) {
+  if (FILE_STORE[storeKey] && FILE_STORE[storeKey].b64) return FILE_STORE[storeKey];
+  if (!cloudPath) return null;
+  var data = await downloadFileFromCloud(cloudPath, mimeType, fileName);
+  if (data) FILE_STORE[storeKey] = data;
+  return data;
+}
+
+// Uploads a file to the CLIENT's storage folder (used by pros uploading on a client's behalf).
+// Pro users have read access to any client folder via RLS, and the upload is tagged so the
+// client's own session can also read it back under their own folder.
+async function uploadFileToClientCloud(clientAuthId, storeKey, file) {
+  if (!SUPA || !clientAuthId) return null;
+  try {
+    var safeName = (file.name || 'file').replace(/[^a-zA-Z0-9._-]/g, '_');
+    var path = clientAuthId + '/' + storeKey + '-' + Date.now() + '-' + safeName;
+    var res = await SUPA.storage.from('claim-files').upload(path, file, {
+      contentType: file.type || 'application/octet-stream',
+      upsert: true
+    });
+    if (res.error) { console.warn('Pro cloud upload failed:', res.error.message); return null; }
+    return path;
+  } catch(e) {
+    console.warn('Pro cloud upload error:', e.message);
+    return null;
+  }
 }
 
 // Register a callback for when a zone receives a file
@@ -2022,7 +2101,7 @@ function renderPolicySummary(aiText, fileName) {
     +'<button onclick="goPage(\'damage\')" class="btn btn-ghost btn-sm">Next: Document Damage →</button>'
     +'</div></div>';
   document.getElementById('pol-output').innerHTML = html;
-  if(FILE_STORE['pol-file']) { var pf=FILE_STORE['pol-file']; CLAIM.policy=pf; CLAIM.vault.docs.push({name:pf.name,type:'Policy',uploaded:'Just now',storeKey:'pol-file'}); }
+  if(FILE_STORE['pol-file']) { var pf=FILE_STORE['pol-file']; CLAIM.policy=pf; CLAIM.vault.docs.push({name:pf.name,type:'Policy',uploaded:'Just now',storeKey:'pol-file',cloudPath:pf.cloudPath||null,mimeType:pf.mt||null}); }
 }
 
 function markDone(step) {
@@ -2511,6 +2590,13 @@ function runEstimatesComparison() {
   if(!iNum&&!cNum){ out.innerHTML='<div style="color:var(--ink4);font-size:13px;">Enter estimate totals above to see a comparison.</div>'; return; }
   var gapColor = gap>0?'var(--green)':(gap<0?'var(--red)':'var(--ink)');
   var gapLabel = gap>0?'Contractor is higher by':'Insurer is higher by';
+
+  var iFile = FILE_STORE['est-insurer'];
+  var cFile = FILE_STORE['est-contractor'];
+  var lineItemBtn = (iFile && cFile)
+    ? '<button onclick="openLineItemComparison()" class="btn btn-primary btn-sm">'+svgIcon('chart',12,'#fff')+' Line-by-Line Comparison</button>'
+    : '<button disabled title="Upload both PDFs to enable" class="btn btn-ghost btn-sm" style="opacity:.5;cursor:not-allowed;">'+svgIcon('chart',12,'var(--ink4)')+' Line-by-Line Comparison</button>';
+
   out.innerHTML = '<div class="fade-in">'
     +'<div style="font-size:14px;font-weight:700;color:var(--ink);margin-bottom:14px;">Estimate Comparison</div>'
     +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px;">'
@@ -2521,16 +2607,226 @@ function runEstimatesComparison() {
           +'</div>';
     }).join('')
     +'</div>'
-    +(gap>2000?'<div style="background:#F0FDF4;border:1px solid var(--teal-b);border-radius:8px;padding:12px 14px;font-size:12.5px;color:var(--teal);">'
+    +(gap>2000?'<div style="background:#F0FDF4;border:1px solid var(--teal-b);border-radius:8px;padding:12px 14px;font-size:12.5px;color:var(--teal);margin-bottom:12px;">'
       +'<strong>'+gapLabel+' '+fmt(Math.abs(gap))+'.</strong> This gap is worth investigating. Consider requesting a public adjuster review or asking your insurer to explain the difference in writing.'
       +'</div>':'')
-    +'<div style="display:flex;gap:8px;margin-top:12px;">'
-    +'<button onclick="markDone(\'estimates\')" class="btn btn-primary btn-sm">'+svgIcon('check',12,'#fff')+' Save Estimates</button>'
+    +'<div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">'
+    +'<button onclick="saveEstimatesData('+iNum+','+cNum+','+gap+',\''+cName.replace(/'/g,"\\\\'")+'\')" class="btn btn-primary btn-sm">'+svgIcon('check',12,'#fff')+' Save Estimates</button>'
+    +lineItemBtn
     +'<button onclick="goPage(\'analysis\')" class="btn btn-ghost btn-sm">Get AI Analysis →</button>'
     +'</div></div>';
-  CLAIM.estimates={insurerTotal:iNum,contractorTotal:cNum,gap:gap,contractorName:cName};
-  if(FILE_STORE['est-insurer']) CLAIM.vault.docs.push({name:FILE_STORE['est-insurer'].name,type:'Insurer Estimate',uploaded:'Just now',storeKey:'est-insurer'});
-  if(FILE_STORE['est-contractor']) CLAIM.vault.docs.push({name:FILE_STORE['est-contractor'].name,type:'Contractor Estimate',uploaded:'Just now',storeKey:'est-contractor'});
+}
+
+function saveEstimatesData(iNum, cNum, gap, cName) {
+  CLAIM.estimates = { insurerTotal:iNum, contractorTotal:cNum, gap:gap, contractorName:cName };
+  if (FILE_STORE['est-insurer'] && !CLAIM.vault.docs.find(function(d){return d.storeKey==='est-insurer';})) {
+    CLAIM.vault.docs.push({ name:FILE_STORE['est-insurer'].name, type:'Insurer Estimate', uploaded:'Just now', storeKey:'est-insurer', cloudPath:FILE_STORE['est-insurer'].cloudPath||null, mimeType:FILE_STORE['est-insurer'].mt||null });
+  }
+  if (FILE_STORE['est-contractor'] && !CLAIM.vault.docs.find(function(d){return d.storeKey==='est-contractor';})) {
+    CLAIM.vault.docs.push({ name:FILE_STORE['est-contractor'].name, type:'Contractor Estimate', uploaded:'Just now', storeKey:'est-contractor', cloudPath:FILE_STORE['est-contractor'].cloudPath||null, mimeType:FILE_STORE['est-contractor'].mt||null });
+  }
+  markDone('estimates');
+  if (typeof saveClaimToDB === 'function' && SESSION.userId) saveClaimToDB();
+}
+
+// ══════════════════════════════════════════════
+// LINE-BY-LINE ESTIMATE COMPARISON (shared by policyholder + pro views)
+// ══════════════════════════════════════════════
+async function openLineItemComparison() {
+  var iFile = FILE_STORE['est-insurer'];
+  var cFile = FILE_STORE['est-contractor'];
+  if (!iFile || !cFile) { toast('Please upload both estimates first', '#D97706'); return; }
+  await runLineItemComparison(iFile, cFile, CLAIM.insurer || 'Insurer', (document.getElementById('est-contractor-name')||{}).value || 'Contractor');
+}
+
+// Entry point used by the PRO portal — works from vault docs (cloud-backed) instead of upload zones
+async function openLineItemComparisonFromDocs(insurerDoc, contractorDoc, insurerLabel, contractorLabel) {
+  if (!insurerDoc || !contractorDoc) { toast('Both an insurer and contractor estimate are needed', '#D97706'); return; }
+  toast('Loading both estimates…');
+  var iFile = await ensureFileLoaded(insurerDoc.storeKey, insurerDoc.cloudPath, insurerDoc.mimeType, insurerDoc.name);
+  var cFile = await ensureFileLoaded(contractorDoc.storeKey, contractorDoc.cloudPath, contractorDoc.mimeType, contractorDoc.name);
+  if (!iFile || !cFile) { toast('Could not load one or both files', '#D97706'); return; }
+  await runLineItemComparison(iFile, cFile, insurerLabel, contractorLabel);
+}
+
+async function runLineItemComparison(iFile, cFile, insurerLabel, contractorLabel) {
+  var overlay = document.createElement('div');
+  overlay.id = 'line-compare-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:var(--cream);z-index:9500;overflow-y:auto;';
+  overlay.innerHTML =
+    '<div style="max-width:1000px;margin:0 auto;padding:32px 24px 60px;">'
+    + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;">'
+    + '<button onclick="closeLineItemComparison()" style="display:flex;align-items:center;gap:6px;background:none;border:none;font-size:13px;color:var(--ink4);cursor:pointer;padding:0;">'
+    + '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="15,18 9,12 15,6"/></svg> Back</button>'
+    + '<button onclick="window.print()" class="btn btn-ghost btn-sm">'+svgIcon('download',12)+' Print / Save as PDF</button>'
+    + '</div>'
+    + '<div id="line-compare-body">'
+    + '<div class="card" style="text-align:center;padding:48px 24px;">'
+    + '<div style="display:flex;justify-content:center;gap:8px;margin-bottom:14px;"><span class="tdot"></span><span class="tdot"></span><span class="tdot"></span></div>'
+    + '<div style="font-size:14px;color:var(--ink3);">Reading both estimates and matching line items…</div>'
+    + '<div style="font-size:12px;color:var(--ink4);margin-top:6px;">This usually takes 15-30 seconds</div>'
+    + '</div></div></div>';
+  document.body.appendChild(overlay);
+
+  var systemPrompt = [
+    "You are an expert insurance claim estimate analyst comparing two property damage repair estimates.",
+    "You will be given an insurer's estimate PDF and a contractor's estimate PDF for the same loss.",
+    "Extract every line item from BOTH documents and match equivalent items together, even if worded differently",
+    "(e.g. '3 tab shingles' should match 'asphalt shingle roofing').",
+    "",
+    "Respond with ONLY valid JSON, no markdown formatting, no code fences, no commentary. Format exactly as:",
+    "{",
+    '  "insurerTotal": number,',
+    '  "contractorTotal": number,',
+    '  "items": [',
+    '    { "category": string, "description": string, "insurerQty": string, "insurerUnit": string, "insurerPrice": number, "contractorQty": string, "contractorUnit": string, "contractorPrice": number, "status": "match" | "insurer_only" | "contractor_only" | "price_diff" }',
+    "  ],",
+    '  "summary": string (2-3 sentences on the biggest gaps and what to do next)',
+    "}",
+    "",
+    "Rules:",
+    "- status='match' if both have the item at the same/similar price (within 5%)",
+    "- status='price_diff' if both have the item but prices differ by more than 5%",
+    "- status='insurer_only' if only the insurer estimate has this item",
+    "- status='contractor_only' if only the contractor estimate has this item",
+    "- Use 0 for any price/qty not present in that estimate",
+    "- Group items into logical categories (e.g. 'Roofing', 'Drywall', 'Flooring', 'Overhead & Profit')",
+    "- Be thorough — extract every line item, don't summarize or skip items",
+  ].join("\n");
+
+  var userPrompt = "Compare these two property damage estimates. The first document is the " + insurerLabel + "'s estimate. The second document is the " + contractorLabel + "'s estimate. Extract and match every line item.";
+
+  try {
+    var response = await callAPI({
+      model: MODEL,
+      max_tokens: 8000,
+      system: systemPrompt,
+      messages: [{
+        role: 'user',
+        content: [
+          { type: 'document', source: { type: 'base64', media_type: iFile.mt || 'application/pdf', data: iFile.b64 } },
+          { type: 'text', text: 'Above is the ' + insurerLabel + ' estimate.' },
+          { type: 'document', source: { type: 'base64', media_type: cFile.mt || 'application/pdf', data: cFile.b64 } },
+          { type: 'text', text: 'Above is the ' + contractorLabel + ' estimate. ' + userPrompt }
+        ]
+      }]
+    });
+
+    if (!response) throw new Error('Empty response from AI');
+    renderLineItemResults(response, insurerLabel, contractorLabel);
+  } catch(e) {
+    console.error('Line item comparison failed:', e);
+    var body = document.getElementById('line-compare-body');
+    if (body) body.innerHTML =
+      '<div class="card" style="text-align:center;padding:40px 24px;">'
+      + '<div style="color:var(--red);font-size:14px;font-weight:600;margin-bottom:8px;">Comparison failed</div>'
+      + '<div style="font-size:13px;color:var(--ink4);">Please try again, or check that both files are valid PDFs.</div>'
+      + '</div>';
+  }
+}
+
+function renderLineItemResults(jsonText, insurerLabel, contractorLabel) {
+  var data;
+  try {
+    var clean = (jsonText||'').replace(/```json|```/g,'').trim();
+    data = JSON.parse(clean);
+  } catch(e) {
+    var body0 = document.getElementById('line-compare-body');
+    if (body0) body0.innerHTML =
+      '<div class="card" style="text-align:center;padding:40px 24px;">'
+      + '<div style="color:var(--red);font-size:14px;font-weight:600;margin-bottom:8px;">Could not parse comparison</div>'
+      + '<div style="font-size:13px;color:var(--ink4);">The AI response was not valid — please try again.</div>'
+      + '</div>';
+    return;
+  }
+
+  var items = data.items || [];
+  var statusMeta = {
+    match:           { color:'var(--ink3)',  bg:'transparent',     label:'Match' },
+    price_diff:      { color:'var(--amber)', bg:'var(--amber-l)',  label:'Price Gap' },
+    insurer_only:    { color:'var(--red)',   bg:'#FEF2F2',         label:'Insurer Only' },
+    contractor_only: { color:'var(--teal)',  bg:'var(--teal-l)',   label:'Contractor Only' },
+  };
+
+  var byCategory = {};
+  items.forEach(function(it) {
+    var cat = it.category || 'Other';
+    if (!byCategory[cat]) byCategory[cat] = [];
+    byCategory[cat].push(it);
+  });
+
+  var gap = (data.contractorTotal||0) - (data.insurerTotal||0);
+  var gapColor = gap > 0 ? 'var(--green)' : (gap < 0 ? 'var(--red)' : 'var(--ink)');
+
+  var rowsHtml = Object.keys(byCategory).map(function(cat) {
+    var rows = byCategory[cat].map(function(it) {
+      var meta = statusMeta[it.status] || statusMeta.match;
+      return '<tr style="background:'+meta.bg+';">'
+        + '<td style="padding:10px 12px;font-size:12.5px;color:var(--ink2);border-bottom:1px solid var(--border);">' + (it.description||'') + '</td>'
+        + '<td style="padding:10px 12px;font-size:12.5px;color:var(--ink3);border-bottom:1px solid var(--border);text-align:center;">' + (it.insurerQty?it.insurerQty+' '+(it.insurerUnit||''):'—') + '</td>'
+        + '<td style="padding:10px 12px;font-size:12.5px;color:var(--ink2);border-bottom:1px solid var(--border);text-align:right;font-weight:600;">' + (it.insurerPrice ? fmt(it.insurerPrice) : '—') + '</td>'
+        + '<td style="padding:10px 12px;font-size:12.5px;color:var(--ink3);border-bottom:1px solid var(--border);text-align:center;">' + (it.contractorQty?it.contractorQty+' '+(it.contractorUnit||''):'—') + '</td>'
+        + '<td style="padding:10px 12px;font-size:12.5px;color:var(--ink2);border-bottom:1px solid var(--border);text-align:right;font-weight:600;">' + (it.contractorPrice ? fmt(it.contractorPrice) : '—') + '</td>'
+        + '<td style="padding:10px 12px;border-bottom:1px solid var(--border);text-align:center;">'
+        + '<span style="font-size:10.5px;font-weight:700;color:'+meta.color+';background:'+meta.color+'18;padding:2px 8px;border-radius:6px;">'+meta.label+'</span>'
+        + '</td></tr>';
+    }).join('');
+    return '<tr><td colspan="6" style="padding:14px 12px 6px;font-size:11.5px;font-weight:700;color:var(--teal);letter-spacing:.04em;text-transform:uppercase;">'+cat+'</td></tr>' + rows;
+  }).join('');
+
+  var html =
+    '<div style="margin-bottom:20px;">'
+    + '<div class="serif" style="font-size:24px;font-weight:700;color:var(--ink);margin-bottom:4px;">Line-by-Line Estimate Comparison</div>'
+    + '<div style="font-size:13px;color:var(--ink4);">'+CLAIM.name+' &middot; '+CLAIM.losstype+' &middot; '+(CLAIM.address||'')+'</div>'
+    + '</div>'
+
+    + '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:20px;">'
+    + [[insurerLabel,data.insurerTotal,'var(--amber)'],[contractorLabel,data.contractorTotal,'var(--teal)'],['Difference',Math.abs(gap),gapColor]].map(function(col){
+        return '<div style="background:var(--white);border:1px solid var(--border);border-radius:10px;padding:16px;text-align:center;">'
+          + '<div style="font-size:11.5px;color:var(--ink4);margin-bottom:4px;">'+col[0]+'</div>'
+          + '<div style="font-family:\'Lora\',serif;font-size:22px;font-weight:700;color:'+col[2]+';">'+fmt(col[1]||0)+'</div>'
+          + '</div>';
+      }).join('')
+    + '</div>'
+
+    + (data.summary ? '<div class="card" style="background:var(--teal-l);border-color:var(--teal-b);margin-bottom:20px;">'
+        + '<div style="font-size:12.5px;font-weight:700;color:var(--teal);margin-bottom:6px;">Key Findings</div>'
+        + '<div style="font-size:13px;color:var(--ink2);line-height:1.6;">'+data.summary+'</div>'
+        + '</div>' : '')
+
+    + '<div style="display:flex;gap:14px;margin-bottom:14px;flex-wrap:wrap;">'
+    + Object.keys(statusMeta).map(function(k){
+        var m = statusMeta[k];
+        return '<div style="display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--ink3);"><span style="width:10px;height:10px;border-radius:3px;background:'+m.color+';display:inline-block;"></span>'+m.label+'</div>';
+      }).join('')
+    + '</div>'
+
+    + '<div class="card" style="padding:0;overflow-x:auto;">'
+    + '<table style="width:100%;border-collapse:collapse;min-width:700px;">'
+    + '<thead><tr style="background:var(--paper);">'
+    + '<th style="padding:10px 12px;text-align:left;font-size:11px;font-weight:700;color:var(--ink4);text-transform:uppercase;letter-spacing:.03em;">Description</th>'
+    + '<th style="padding:10px 12px;text-align:center;font-size:11px;font-weight:700;color:var(--ink4);text-transform:uppercase;letter-spacing:.03em;">Insurer Qty</th>'
+    + '<th style="padding:10px 12px;text-align:right;font-size:11px;font-weight:700;color:var(--ink4);text-transform:uppercase;letter-spacing:.03em;">Insurer $</th>'
+    + '<th style="padding:10px 12px;text-align:center;font-size:11px;font-weight:700;color:var(--ink4);text-transform:uppercase;letter-spacing:.03em;">Contractor Qty</th>'
+    + '<th style="padding:10px 12px;text-align:right;font-size:11px;font-weight:700;color:var(--ink4);text-transform:uppercase;letter-spacing:.03em;">Contractor $</th>'
+    + '<th style="padding:10px 12px;text-align:center;font-size:11px;font-weight:700;color:var(--ink4);text-transform:uppercase;letter-spacing:.03em;">Status</th>'
+    + '</tr></thead><tbody>' + rowsHtml + '</tbody></table></div>'
+
+    + '<div style="margin-top:20px;display:flex;gap:10px;flex-wrap:wrap;">'
+    + '<button onclick="window.print()" class="btn btn-primary">'+svgIcon('download',13,'#fff')+' Print / Save as PDF</button>'
+    + '<button onclick="closeLineItemComparison()" class="btn btn-ghost">Close</button>'
+    + '</div>';
+
+  var body = document.getElementById('line-compare-body');
+  if (body) body.innerHTML = html;
+
+  CLAIM.lineItemComparison = data;
+  if (typeof saveClaimToDB === 'function' && SESSION.userId) saveClaimToDB();
+}
+
+function closeLineItemComparison() {
+  var ov = document.getElementById('line-compare-overlay');
+  if (ov) ov.remove();
 }
 
 
@@ -2625,6 +2921,7 @@ function renderVault() {
 
   var docsHtml = docs.length ? docs.map(function(d) {
     var fd = d.storeKey ? FILE_STORE[d.storeKey] : null;
+    var canAccess = fd || d.cloudPath;
     return '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);">'
       +'<div style="display:flex;align-items:center;gap:10px;">'
       +'<div style="width:36px;height:36px;background:var(--teal-l);border-radius:8px;display:flex;align-items:center;justify-content:center;">'+svgIcon('doc',16,'var(--teal)')+'</div>'
@@ -2632,8 +2929,8 @@ function renderVault() {
       +'<div style="font-size:11.5px;color:var(--ink4);">'+d.type+' · Uploaded '+d.uploaded+'</div></div>'
       +'</div>'
       +'<div style="display:flex;gap:6px;">'
-      +(fd ? '<button onclick="previewFile(\''+d.storeKey+'\')" class="btn btn-ghost btn-sm">'+svgIcon('doc',12)+' View</button>' : '')
-      +(fd ? '<a href="'+fd.dataUrl+'" download="'+d.name+'" class="btn btn-ghost btn-sm">'+svgIcon('download',12)+' Save</a>' : '<span style="font-size:11.5px;color:var(--ink4);">Add via upload</span>')
+      +(canAccess ? '<button onclick="previewFile(\''+d.storeKey+'\',\''+(d.cloudPath||'')+'\',\''+(d.mimeType||'')+'\',\''+(d.name||'').replace(/'/g,"\\\\'")+'\')" class="btn btn-ghost btn-sm">'+svgIcon('doc',12)+' View</button>' : '')
+      +(fd ? '<a href="'+fd.dataUrl+'" download="'+d.name+'" class="btn btn-ghost btn-sm">'+svgIcon('download',12)+' Save</a>' : (d.cloudPath ? '<button onclick="downloadCloudFile(\''+d.storeKey+'\',\''+d.cloudPath+'\',\''+(d.mimeType||'')+'\',\''+(d.name||'').replace(/'/g,"\\\\'")+'\')" class="btn btn-ghost btn-sm">'+svgIcon('download',12)+' Save</button>' : '<span style="font-size:11.5px;color:var(--ink4);">Add via upload</span>'))
       +'</div>'
       +'</div>';
   }).join('') : '<div style="font-size:13px;color:var(--ink4);padding:16px 0;">No documents uploaded yet.</div>';
@@ -2669,7 +2966,7 @@ function handleVaultUpload(input) {
     readFile(f).then(function(data) {
       var key = 'vault-doc-' + Date.now() + '-' + done;
       FILE_STORE[key] = data;
-      CLAIM.vault.docs.push({ name:f.name, type:'Uploaded Document', uploaded:'Just now', storeKey:key });
+      CLAIM.vault.docs.push({ name:f.name, type:'Uploaded Document', uploaded:'Just now', storeKey:key, cloudPath:f.cloudPath||null, mimeType:f.mt||null });
       done++;
       if(done === files.length) {
         toast('✓ ' + files.length + ' file' + (files.length!==1?'s':'') + ' added to vault');
@@ -3759,7 +4056,7 @@ async function loadProFilesFromDB(firmId) {
   if (!SUPA || !firmId) { seedProDemoFiles(); return; }
   try {
     var res = await SUPA.from('claims')
-      .select('id, claim_data, updated_at, policyholders(name, email)')
+      .select('id, claim_data, updated_at, auth_id, policyholders(name, email)')
       .eq('firm_id', firmId)
       .order('updated_at', { ascending: false });
 
@@ -3774,6 +4071,7 @@ async function loadProFilesFromDB(firmId) {
       return {
         id:       row.id,
         dbId:     row.id,           // Supabase claims.id for saving back
+        clientAuthId: row.auth_id,  // client's auth_id — used as storage folder for cloud files
         messages: claim._proMessages || [],
         notes:    claim._proNotes    || '',
         claim:    claim,
@@ -4470,6 +4768,8 @@ function renderProVaultView(f, c) {
   var docRows = docs.length ? docs.map(function(d) {
     var fd = d.storeKey ? FILE_STORE[d.storeKey] : null;
     var byPro = d.uploadedBy === 'Professional';
+    var canAccess = fd || d.cloudPath;
+    var safeName = (d.name||'').replace(/'/g,"\\'");
     return '<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);">'
       + '<div style="width:34px;height:34px;background:var(--teal-l);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">' + svgIcon('doc',15,'var(--teal)') + '</div>'
       + '<div style="flex:1;min-width:0;">'
@@ -4479,8 +4779,8 @@ function renderProVaultView(f, c) {
         + ' &nbsp;&middot;&nbsp; ' + d.uploaded + '</div>'
       + '</div>'
       + '<div style="display:flex;gap:6px;flex-shrink:0;">'
-      + (fd ? '<button onclick="previewFile(\'' + d.storeKey + '\')" class="btn btn-ghost btn-sm" style="font-size:12px;">View</button>' : '')
-      + (fd ? '<a href="' + fd.dataUrl + '" download="' + d.name + '" class="btn btn-ghost btn-sm" style="font-size:12px;">' + svgIcon('download',11) + ' Save</a>' : '<span style="font-size:11px;color:var(--ink4);">Client upload</span>')
+      + (canAccess ? '<button onclick="previewFile(\'' + d.storeKey + '\',\'' + (d.cloudPath||'') + '\',\'' + (d.mimeType||'') + '\',\'' + safeName + '\')" class="btn btn-ghost btn-sm" style="font-size:12px;">View</button>' : '')
+      + (fd ? '<a href="' + fd.dataUrl + '" download="' + d.name + '" class="btn btn-ghost btn-sm" style="font-size:12px;">' + svgIcon('download',11) + ' Save</a>' : (d.cloudPath ? '<button onclick="downloadCloudFile(\'' + d.storeKey + '\',\'' + d.cloudPath + '\',\'' + (d.mimeType||'') + '\',\'' + safeName + '\')" class="btn btn-ghost btn-sm" style="font-size:12px;">' + svgIcon('download',11) + ' Save</button>' : '<span style="font-size:11px;color:var(--ink4);">Client upload</span>'))
       + (byPro ? '<button onclick="removeProDoc(\'' + d.storeKey + '\')" class="btn btn-ghost btn-sm" style="color:var(--red);border-color:#fee2e2;" title="Remove">' + svgIcon('trash',11,'var(--red)') + '</button>' : '')
       + '</div>'
       + '</div>';
@@ -5899,7 +6199,7 @@ async function loadProFilesFromDB(firmId) {
   if (!SUPA || !firmId) { seedProDemoFiles(); return; }
   try {
     var res = await SUPA.from('claims')
-      .select('id, claim_data, updated_at, policyholders(name, email)')
+      .select('id, claim_data, updated_at, auth_id, policyholders(name, email)')
       .eq('firm_id', firmId)
       .order('updated_at', { ascending: false });
 
@@ -5914,6 +6214,7 @@ async function loadProFilesFromDB(firmId) {
       return {
         id:       row.id,
         dbId:     row.id,           // Supabase claims.id for saving back
+        clientAuthId: row.auth_id,  // client's auth_id — used as storage folder for cloud files
         messages: claim._proMessages || [],
         notes:    claim._proNotes    || '',
         claim:    claim,
@@ -6509,7 +6810,22 @@ function renderProContractorsView(c) {
 // ── Estimates view ────────────────────────────────────────────
 function renderProEstimatesView(c) {
   var est = c.estimates;
+  var vaultDocs = (c.vault && c.vault.docs) || [];
+  var insurerDoc    = vaultDocs.find(function(d){ return d.type === 'Insurer Estimate' || d.docTypeId === 'pro-est'; });
+  var contractorDoc = vaultDocs.find(function(d){ return d.type === 'Contractor Estimate' || d.docTypeId === 'pro-ctr'; });
+
   if(!est) { document.getElementById('pro-body').innerHTML = proCard('Estimates', '<div style="color:var(--ink4);text-align:center;padding:32px;font-size:13px;">No estimates uploaded yet.</div>'); return; }
+
+  // Stage the docs globally so the onclick handler can reference them without fragile inline JSON
+  window._proCompareInsurerDoc    = insurerDoc;
+  window._proCompareContractorDoc = contractorDoc;
+  window._proCompareInsurerLabel    = c.insurer || 'Insurer';
+  window._proCompareContractorLabel = est.contractorName || 'Contractor';
+
+  var lineItemBtn = (insurerDoc && contractorDoc)
+    ? '<button onclick="openLineItemComparisonFromDocs(window._proCompareInsurerDoc, window._proCompareContractorDoc, window._proCompareInsurerLabel, window._proCompareContractorLabel)" class="btn btn-primary btn-sm">' + svgIcon('chart',12,'#fff') + ' Line-by-Line Comparison</button>'
+    : '<div style="font-size:12px;color:var(--ink4);">Upload both estimate PDFs in Documents &amp; Photos to enable line-by-line comparison.</div>';
+
   var html = '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px;">'
     +[['Insurer Estimate', est.insurerTotal, 'var(--amber)'],['Contractor Estimate', est.contractorTotal, 'var(--teal)'],['Gap', Math.abs(est.gap||0), 'var(--red)']].map(function(col){
         return '<div style="background:var(--paper);border-radius:10px;padding:14px;text-align:center;border:1px solid var(--border);">'
@@ -6518,7 +6834,8 @@ function renderProEstimatesView(c) {
           +'</div>';
       }).join('')
     +'</div>'
-    +(est.contractorName ? proInfoRow('Contractor', est.contractorName) : '');
+    +(est.contractorName ? proInfoRow('Contractor', est.contractorName) : '')
+    +'<div style="margin-top:16px;">'+lineItemBtn+'</div>';
   document.getElementById('pro-body').innerHTML = proCard('Estimates', html);
 }
 
@@ -6610,6 +6927,8 @@ function renderProVaultView(f, c) {
   var docRows = docs.length ? docs.map(function(d) {
     var fd = d.storeKey ? FILE_STORE[d.storeKey] : null;
     var byPro = d.uploadedBy === 'Professional';
+    var canAccess = fd || d.cloudPath;
+    var safeName = (d.name||'').replace(/'/g,"\\'");
     return '<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);">'
       + '<div style="width:34px;height:34px;background:var(--teal-l);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">' + svgIcon('doc',15,'var(--teal)') + '</div>'
       + '<div style="flex:1;min-width:0;">'
@@ -6619,8 +6938,8 @@ function renderProVaultView(f, c) {
         + ' &nbsp;&middot;&nbsp; ' + d.uploaded + '</div>'
       + '</div>'
       + '<div style="display:flex;gap:6px;flex-shrink:0;">'
-      + (fd ? '<button onclick="previewFile(\'' + d.storeKey + '\')" class="btn btn-ghost btn-sm" style="font-size:12px;">View</button>' : '')
-      + (fd ? '<a href="' + fd.dataUrl + '" download="' + d.name + '" class="btn btn-ghost btn-sm" style="font-size:12px;">' + svgIcon('download',11) + ' Save</a>' : '<span style="font-size:11px;color:var(--ink4);">Client upload</span>')
+      + (canAccess ? '<button onclick="previewFile(\'' + d.storeKey + '\',\'' + (d.cloudPath||'') + '\',\'' + (d.mimeType||'') + '\',\'' + safeName + '\')" class="btn btn-ghost btn-sm" style="font-size:12px;">View</button>' : '')
+      + (fd ? '<a href="' + fd.dataUrl + '" download="' + d.name + '" class="btn btn-ghost btn-sm" style="font-size:12px;">' + svgIcon('download',11) + ' Save</a>' : (d.cloudPath ? '<button onclick="downloadCloudFile(\'' + d.storeKey + '\',\'' + d.cloudPath + '\',\'' + (d.mimeType||'') + '\',\'' + safeName + '\')" class="btn btn-ghost btn-sm" style="font-size:12px;">' + svgIcon('download',11) + ' Save</button>' : '<span style="font-size:11px;color:var(--ink4);">Client upload</span>'))
       + (byPro ? '<button onclick="removeProDoc(\'' + d.storeKey + '\')" class="btn btn-ghost btn-sm" style="color:var(--red);border-color:#fee2e2;" title="Remove">' + svgIcon('trash',11,'var(--red)') + '</button>' : '')
       + '</div>'
       + '</div>';
@@ -6899,11 +7218,16 @@ function handleProFileUpload(input) {
       FILE_STORE[key] = data;
       if(!f.claim.vault) f.claim.vault = { docs:[], photos:[] };
 
+      // Upload to cloud storage under the CLIENT's folder (pros have read access there via RLS)
+      var cloudPath = await uploadFileToClientCloud(f.clientAuthId, key, file);
+      if (cloudPath) FILE_STORE[key].cloudPath = cloudPath;
+
       // If uploaded via a specific zone (not "Other"), use that type directly
       if (explicitTypeId && explicitTypeId !== 'pro-misc') {
         var docEntry = {
           name: file.name, type: explicitType, docTypeId: explicitTypeId,
-          uploadedBy: 'Professional', uploaded: new Date().toLocaleString(), storeKey: key
+          uploadedBy: 'Professional', uploaded: new Date().toLocaleString(), storeKey: key,
+          cloudPath: cloudPath || null, mimeType: data.mt || null
         };
         f.claim.vault.docs.push(docEntry);
         saveProFileToDB(PRO_ACTIVE_FILE);
@@ -6917,7 +7241,8 @@ function handleProFileUpload(input) {
       var applyCategory = function(detected) {
         var docEntry = {
           name: file.name, type: detected.label, docTypeId: detected.id,
-          uploadedBy: 'Professional', uploaded: new Date().toLocaleString(), storeKey: key
+          uploadedBy: 'Professional', uploaded: new Date().toLocaleString(), storeKey: key,
+          cloudPath: cloudPath || null, mimeType: data.mt || null
         };
         f.claim.vault.docs.push(docEntry);
         saveProFileToDB(PRO_ACTIVE_FILE);
@@ -6926,7 +7251,8 @@ function handleProFileUpload(input) {
       var applyOther = function() {
         f.claim.vault.docs.push({
           name: file.name, type: 'Other Document', docTypeId: 'pro-misc',
-          uploadedBy: 'Professional', uploaded: new Date().toLocaleString(), storeKey: key
+          uploadedBy: 'Professional', uploaded: new Date().toLocaleString(), storeKey: key,
+          cloudPath: cloudPath || null, mimeType: data.mt || null
         });
         saveProFileToDB(PRO_ACTIVE_FILE);
         renderProVaultView(f, f.claim);
@@ -7771,8 +8097,28 @@ function openPhotoPreview(key) {
   w.document.write('<html><body style="margin:0;background:#111;display:flex;align-items:center;justify-content:center;min-height:100vh;"><img src="'+url+'" style="max-width:100%;max-height:100vh;object-fit:contain;" onclick="window.close()"></body></html>');
 }
 
-function previewFile(key) {
+async function downloadCloudFile(key, cloudPath, mimeType, fileName) {
+  toast('Preparing download…');
+  var d = await downloadFileFromCloud(cloudPath, mimeType, fileName);
+  if (!d) { toast('Could not download file', '#D97706'); return; }
+  FILE_STORE[key] = d;
+  var a = document.createElement('a');
+  a.href = d.dataUrl;
+  a.download = fileName || 'file';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+}
+
+async function previewFile(key, cloudPath, mimeType, fileName) {
   var d = FILE_STORE[key];
+  if (!d || !d.dataUrl) {
+    if (cloudPath) {
+      toast('Loading file…');
+      d = await downloadFileFromCloud(cloudPath, mimeType, fileName);
+      if (d) FILE_STORE[key] = d;
+    }
+  }
   if(!d || !d.dataUrl) { toast('File not available for preview', '#D97706'); return; }
   previewFile_dataUrl(d.dataUrl, d.mt);
 }
@@ -7950,17 +8296,9 @@ async function saveClaimToDB() {
 async function loadClaimFromDB() {
   if (!SUPA || !SESSION.userId) return;
   try {
-    // Look up policyholder row by auth_id first
-    var phRes = await SUPA.from('policyholders')
-      .select('id, firm_id')
-      .eq('auth_id', SESSION.userId)
-      .maybeSingle();
-
-    if (!phRes.data) return;
-
     var res = await SUPA.from('claims')
       .select('claim_data, firm_id')
-      .eq('policyholder_id', phRes.data.id)
+      .eq('auth_id', SESSION.userId)
       .maybeSingle();
 
     if (res.data && res.data.claim_data) {
