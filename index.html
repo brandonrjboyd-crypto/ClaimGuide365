@@ -577,7 +577,7 @@ label{font-size:13px;font-weight:600;color:var(--ink2);display:block;margin-bott
 // CONSTANTS & STATE
 // ══════════════════════════════════════════════
 const DEMO_MODE = false;
-const MODEL = 'claude-sonnet-4-20250514';
+const MODEL = 'claude-sonnet-4-6';
 
 var CLAIM = {
   name:'', address:'', insurer:'', claimno:'', losstype:'', dol:'', desc:'',
@@ -4971,7 +4971,7 @@ async function classifyDocByAI(filename, textSnippet) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-sonnet-4-6',
         max_tokens: 60,
         messages: [{ role: 'user', content: prompt }]
       })
@@ -7130,7 +7130,7 @@ async function classifyDocByAI(filename, textSnippet) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-sonnet-4-6',
         max_tokens: 60,
         messages: [{ role: 'user', content: prompt }]
       })
