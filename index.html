@@ -2538,19 +2538,16 @@ function exportContents() {
 // PAGE: ESTIMATES
 // ══════════════════════════════════════════════
 function renderEstimates() {
-  setPage('estimates','Estimates','Upload your insurer\'s estimate and any contractor quotes');
+  setPage('estimates','Estimates','Upload your insurer\'s estimate and any contractor quotes — we\'ll read the totals for you');
   document.getElementById('page-body').innerHTML =
     '<div style="max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:16px;">'
 
     // Insurer estimate
     +'<div class="card">'
     +'<div style="font-size:14px;font-weight:700;color:var(--ink);margin-bottom:4px;">Insurer\'s Estimate</div>'
-    +'<div style="font-size:12.5px;color:var(--ink4);margin-bottom:14px;">Upload the estimate your insurance company provided</div>'
+    +'<div style="font-size:12.5px;color:var(--ink4);margin-bottom:14px;">Upload the estimate your insurance company provided — we\'ll read the total automatically</div>'
     +uploadZoneHtml('est-insurer','Insurer Estimate (.pdf)','application/pdf,.pdf')
-    +'<div style="margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:10px;">'
-    +'<div><label>Insurer Estimate Total</label><input id="est-insurer-total" placeholder="e.g. $61,616" /></div>'
-    +'<div><label>Estimate Date</label><input type="date" id="est-insurer-date" /></div>'
-    +'</div>'
+    +'<div id="est-insurer-readout" style="margin-top:12px;"></div>'
     +'</div>'
 
     // Contractor estimate
@@ -2558,10 +2555,7 @@ function renderEstimates() {
     +'<div style="font-size:14px;font-weight:700;color:var(--ink);margin-bottom:4px;">Your Contractor\'s Quote</div>'
     +'<div style="font-size:12.5px;color:var(--ink4);margin-bottom:14px;">Upload a quote from your preferred contractor (if you have one)</div>'
     +uploadZoneHtml('est-contractor','Contractor Estimate (.pdf)','application/pdf,.pdf')
-    +'<div style="margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:10px;">'
-    +'<div><label>Contractor Estimate Total</label><input id="est-contractor-total" placeholder="e.g. $103,858" /></div>'
-    +'<div><label>Contractor Name</label><input id="est-contractor-name" placeholder="e.g. City Restoration Services" /></div>'
-    +'</div>'
+    +'<div id="est-contractor-readout" style="margin-top:12px;"></div>'
     +'</div>'
 
     // Comparison
@@ -2569,27 +2563,105 @@ function renderEstimates() {
     +'<div id="est-comp-output"></div>'
     +'</div>'
 
-    +'<div style="display:flex;gap:10px;">'
-    +'<button onclick="runEstimatesComparison()" class="btn btn-primary">'+svgIcon('chart',14,'#fff')+' Compare Estimates</button>'
+    +'<div style="display:flex;gap:10px;" id="est-actions">'
     +'<button onclick="markDone(\'estimates\');toast(\'✓ Estimates saved\')" class="btn btn-ghost">Save Without Comparing</button>'
     +'</div>'
     +'</div>';
-  bindUpload('est-insurer'); bindUpload('est-contractor');
+  bindUpload('est-insurer', function(){ onEstimateFileUploaded('est-insurer'); });
+  bindUpload('est-contractor', function(){ onEstimateFileUploaded('est-contractor'); });
+
+  // If both files are already present (e.g. returning to this page), re-extract totals
+  if (FILE_STORE['est-insurer']) onEstimateFileUploaded('est-insurer', true);
+  if (FILE_STORE['est-contractor']) onEstimateFileUploaded('est-contractor', true);
 }
 
-function runEstimatesComparison() {
-  var iTotal = (document.getElementById('est-insurer-total')||{}).value||'';
-  var cTotal = (document.getElementById('est-contractor-total')||{}).value||'';
-  var cName  = (document.getElementById('est-contractor-name')||{}).value||'Your Contractor';
-  var iNum = parseFloat(iTotal.replace(/[^0-9.]/g,''))||0;
-  var cNum = parseFloat(cTotal.replace(/[^0-9.]/g,''))||0;
+// ── Auto-extract the estimate total from an uploaded PDF using AI ──
+async function onEstimateFileUploaded(storeKey, silent) {
+  var file = FILE_STORE[storeKey];
+  if (!file) return;
+  var readoutId = storeKey + '-readout';
+  var readout = document.getElementById(readoutId);
+  if (readout) readout.innerHTML = '<div style="font-size:12.5px;color:var(--ink4);display:flex;align-items:center;gap:6px;"><span class="tdot"></span><span class="tdot"></span><span class="tdot"></span> Reading total from PDF…</div>';
+
+  try {
+    var isContractor = storeKey === 'est-contractor';
+    var system = isContractor
+      ? "You extract data from a contractor repair estimate PDF. Respond with ONLY valid JSON, no markdown, no commentary, in this exact format: {\"total\": number, \"contractorName\": string}. The total is the grand total dollar amount with no dollar sign or commas. The contractorName is the company name on the estimate letterhead. If you cannot find either, use 0 for total or empty string for contractorName."
+      : "You extract the grand total dollar amount from an insurance estimate PDF. Respond with ONLY the number, no dollar sign, no commas, no text. Example response: 61616.42 . If you truly cannot find a total, respond with: 0";
+
+    var result = await callAPI({
+      model: MODEL,
+      max_tokens: 100,
+      system: system,
+      messages: [{
+        role: 'user',
+        content: [
+          { type: 'document', source: { type: 'base64', media_type: file.mt || 'application/pdf', data: file.b64 } },
+          { type: 'text', text: isContractor ? 'Extract the total and contractor name from this estimate.' : 'What is the grand total dollar amount of this estimate?' }
+        ]
+      }]
+    });
+
+    var num = 0;
+    if (isContractor) {
+      try {
+        var clean = (result||'').replace(/```json|```/g,'').trim();
+        var parsed = JSON.parse(clean);
+        num = parseFloat(parsed.total) || 0;
+        if (parsed.contractorName) CLAIM._contractorName = parsed.contractorName;
+      } catch(e) {
+        num = parseFloat((result||'0').replace(/[^0-9.]/g,'')) || 0;
+      }
+    } else {
+      num = parseFloat((result||'0').replace(/[^0-9.]/g,'')) || 0;
+    }
+
+    CLAIM._estimateTotals = CLAIM._estimateTotals || {};
+    CLAIM._estimateTotals[storeKey] = num;
+
+    if (readout) {
+      var nameNote = (isContractor && CLAIM._contractorName) ? ' &middot; ' + CLAIM._contractorName : '';
+      readout.innerHTML = num
+        ? '<div style="background:var(--green-l);border:1px solid var(--green-b,#bbf7d0);border-radius:8px;padding:10px 14px;font-size:13px;color:var(--green);font-weight:600;">' + svgIcon('check',12,'var(--green)') + ' Total found: ' + fmt(num) + nameNote + '</div>'
+        : '<div style="background:var(--amber-l);border:1px solid var(--amber-b);border-radius:8px;padding:10px 14px;font-size:12.5px;color:var(--amber);">Could not read a total automatically — you can still compare, or <button onclick="promptManualTotal(\'' + storeKey + '\')" style="background:none;border:none;text-decoration:underline;color:var(--amber);cursor:pointer;font-weight:600;padding:0;">enter it manually</button>.</div>';
+    }
+  } catch(e) {
+    console.warn('Total extraction failed:', e.message);
+    if (readout) readout.innerHTML = '<div style="font-size:12.5px;color:var(--ink4);">Could not read total automatically — <button onclick="promptManualTotal(\'' + storeKey + '\')" style="background:none;border:none;text-decoration:underline;color:var(--ink3);cursor:pointer;font-weight:600;padding:0;">enter it manually</button></div>';
+  }
+
+  maybeAutoCompare(silent);
+}
+
+function promptManualTotal(storeKey) {
+  var val = prompt('Enter the total dollar amount for this estimate:');
+  if (val === null) return;
+  var num = parseFloat(val.replace(/[^0-9.]/g,'')) || 0;
+  CLAIM._estimateTotals = CLAIM._estimateTotals || {};
+  CLAIM._estimateTotals[storeKey] = num;
+  var readout = document.getElementById(storeKey + '-readout');
+  if (readout) readout.innerHTML = '<div style="background:var(--green-l);border:1px solid var(--green-b,#bbf7d0);border-radius:8px;padding:10px 14px;font-size:13px;color:var(--green);font-weight:600;">' + svgIcon('check',12,'var(--green)') + ' Total set: ' + fmt(num) + '</div>';
+  maybeAutoCompare();
+}
+
+// Once both totals are known, automatically render the comparison — no manual entry, no button click needed
+function maybeAutoCompare(silent) {
+  var totals = CLAIM._estimateTotals || {};
+  var iNum = totals['est-insurer'];
+  var cNum = totals['est-contractor'];
+  if (iNum === undefined || cNum === undefined) return;
+  renderEstimatesComparisonResult(iNum, cNum);
+}
+
+function renderEstimatesComparisonResult(iNum, cNum) {
   var gap  = cNum - iNum;
   var card = document.getElementById('est-comparison');
   var out  = document.getElementById('est-comp-output');
+  if (!card || !out) return;
   card.style.display='block';
-  if(!iNum&&!cNum){ out.innerHTML='<div style="color:var(--ink4);font-size:13px;">Enter estimate totals above to see a comparison.</div>'; return; }
   var gapColor = gap>0?'var(--green)':(gap<0?'var(--red)':'var(--ink)');
   var gapLabel = gap>0?'Contractor is higher by':'Insurer is higher by';
+  var cName = CLAIM._contractorName || 'Your Contractor';
 
   var iFile = FILE_STORE['est-insurer'];
   var cFile = FILE_STORE['est-contractor'];
@@ -2611,13 +2683,11 @@ function runEstimatesComparison() {
       +'<strong>'+gapLabel+' '+fmt(Math.abs(gap))+'.</strong> This gap is worth investigating. Consider requesting a public adjuster review or asking your insurer to explain the difference in writing.'
       +'</div>':'')
     +'<div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">'
-    +'<button onclick="saveEstimatesData('+iNum+','+cNum+','+gap+',\''+cName.replace(/'/g,"\\\\'")+'\')" class="btn btn-primary btn-sm">'+svgIcon('check',12,'#fff')+' Save Estimates</button>'
     +lineItemBtn
     +'<button onclick="goPage(\'analysis\')" class="btn btn-ghost btn-sm">Get AI Analysis →</button>'
     +'</div></div>';
-}
 
-function saveEstimatesData(iNum, cNum, gap, cName) {
+  // Auto-save — no manual "Save Estimates" click required
   CLAIM.estimates = { insurerTotal:iNum, contractorTotal:cNum, gap:gap, contractorName:cName };
   if (FILE_STORE['est-insurer'] && !CLAIM.vault.docs.find(function(d){return d.storeKey==='est-insurer';})) {
     CLAIM.vault.docs.push({ name:FILE_STORE['est-insurer'].name, type:'Insurer Estimate', uploaded:'Just now', storeKey:'est-insurer', cloudPath:FILE_STORE['est-insurer'].cloudPath||null, mimeType:FILE_STORE['est-insurer'].mt||null });
@@ -2636,7 +2706,7 @@ async function openLineItemComparison() {
   var iFile = FILE_STORE['est-insurer'];
   var cFile = FILE_STORE['est-contractor'];
   if (!iFile || !cFile) { toast('Please upload both estimates first', '#D97706'); return; }
-  await runLineItemComparison(iFile, cFile, CLAIM.insurer || 'Insurer', (document.getElementById('est-contractor-name')||{}).value || 'Contractor');
+  await runLineItemComparison(iFile, cFile, CLAIM.insurer || 'Insurer', CLAIM._contractorName || 'Contractor');
 }
 
 // Entry point used by the PRO portal — works from vault docs (cloud-backed) instead of upload zones
